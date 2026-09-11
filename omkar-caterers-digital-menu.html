@@ -1,0 +1,3247 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Omkar Caterers — Digital Menu</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#7A1D2E">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --maroon:#7A1D2E;
+  --maroon-dark:#4A0F1C;
+  --gold:#C89B3C;
+  --cream:#FBF3E3;
+  --ink:#2B1B12;
+  --sage:#4F7942;
+  --paper:#FFFDF8;
+  --veg:#1E7B34;
+  --red:#B23A3A;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:#E9E1CE;
+  font-family:'Poppins',sans-serif;
+  color:var(--ink);
+}
+.app{max-width:980px;margin:0 auto;padding:18px 18px 60px;}
+
+/* ---------- HEADER ---------- */
+.masthead{
+  background:linear-gradient(135deg,var(--maroon) 0%,var(--maroon-dark) 100%);
+  color:var(--cream);
+  border-radius:14px;
+  padding:22px 26px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  box-shadow:0 6px 18px rgba(74,15,28,0.35);
+  position:relative;
+  overflow:hidden;
+}
+.masthead::after{
+  content:"";
+  position:absolute;right:-40px;top:-40px;width:160px;height:160px;
+  border:2px solid rgba(200,155,60,0.25);border-radius:50%;
+}
+.masthead .logo-box{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;border:3px solid var(--cream);
+  overflow:hidden;
+}
+.masthead .logo-box img{width:100%;height:100%;object-fit:cover;}
+.masthead .logo-box .initials{font-family:'Rozha One',serif;font-size:24px;color:var(--maroon-dark);}
+.masthead h1{
+  font-family:'Rozha One',serif;
+  font-size:30px;font-weight:400;margin:0;letter-spacing:0.5px;
+}
+.masthead p{margin:2px 0 0;font-size:13px;opacity:0.85;letter-spacing:1.5px;text-transform:uppercase;}
+
+/* ---------- TABS ---------- */
+.tabs{display:flex;gap:8px;margin:18px 0;flex-wrap:wrap;}
+.tab-btn{
+  flex:1;min-width:130px;
+  padding:12px 10px;border:2px solid var(--maroon);
+  background:var(--paper);color:var(--maroon);
+  font-family:'Poppins',sans-serif;font-weight:600;font-size:13.5px;
+  border-radius:10px;cursor:pointer;transition:all .15s;
+}
+.tab-btn.active{background:var(--maroon);color:var(--cream);}
+.tab-btn:hover{transform:translateY(-1px);}
+
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ---------- CHIT / CARD ---------- */
+.chit{
+  background:var(--paper);
+  border:3px double var(--maroon);
+  border-radius:10px;
+  padding:22px 24px 22px 34px;
+  position:relative;
+  box-shadow:6px 6px 0 rgba(122,29,46,0.08), 10px 10px 0 rgba(122,29,46,0.05);
+  margin-bottom:20px;
+}
+.chit::before{
+  content:"";
+  position:absolute;left:14px;top:14px;bottom:14px;
+  border-left:2px dashed var(--gold);
+}
+.chit-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.order-no{
+  background:var(--maroon);color:var(--cream);
+  padding:5px 12px;border-radius:6px;font-size:13px;font-weight:600;
+  font-family:'Poppins',sans-serif;
+}
+.seal{
+  width:70px;height:70px;border-radius:50%;
+  border:2px dashed var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;font-family:'Rozha One',serif;font-size:10px;color:var(--maroon);
+  line-height:1.2;padding:4px;transform:rotate(-8deg);opacity:0.75;
+}
+
+.section-title{
+  font-family:'Rozha One',serif;font-size:19px;color:var(--maroon-dark);
+  margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--gold);
+  display:flex;align-items:center;gap:8px;
+}
+.section-title .num{
+  background:var(--gold);color:var(--maroon-dark);width:24px;height:24px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'Poppins',sans-serif;
+}
+
+label{font-size:14px;font-weight:500;}
+.row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:6px;}
+.field{flex:1;min-width:160px;display:flex;flex-direction:column;gap:5px;}
+input[type=text],input[type=tel],input[type=number],input[type=date],textarea,select{
+  padding:9px 11px;border:1.5px solid #D8C9A3;border-radius:8px;font-family:'Poppins',sans-serif;
+  font-size:14px;background:#fff;color:var(--ink);
+}
+textarea{resize:vertical;}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--gold);border-color:var(--gold);}
+
+.menu-textarea{
+  width:100%;min-height:78px;background:#FFFEFB;border:1.5px dashed #D8C9A3;
+  font-size:14.5px;line-height:1.6;padding:12px 14px;
+}
+.menu-textarea.big{min-height:120px;}
+.menu-textarea::placeholder{color:#B8A97E;font-style:italic;}
+
+.radio-row{display:flex;gap:14px;flex-wrap:wrap;}
+.radio-item{display:flex;align-items:center;gap:6px;font-size:14px;}
+.radio-item input{accent-color:var(--maroon);width:16px;height:16px;}
+
+.option-row{display:flex;flex-wrap:wrap;gap:9px;}
+.opt-chip{
+  padding:9px 16px;border-radius:22px;border:1.5px solid #D8C9A3;background:#FBF6EA;
+  font-size:13.5px;cursor:pointer;user-select:none;transition:all .12s;
+}
+.opt-chip.selected{background:var(--maroon);border-color:var(--maroon);color:#fff;font-weight:600;}
+
+.tag-input-row{display:flex;gap:8px;margin-top:6px;}
+.tag-input-row input{flex:1;}
+.btn-small{
+  padding:8px 14px;border-radius:8px;border:none;background:var(--maroon);color:#fff;
+  font-weight:600;font-size:13px;cursor:pointer;
+}
+.btn-small:hover{background:var(--maroon-dark);}
+.btn-small.ghost{background:transparent;color:var(--maroon);border:1.5px solid var(--maroon);}
+.btn-small:disabled{opacity:0.4;cursor:not-allowed;filter:grayscale(0.6);}
+.btn-small:disabled:hover{background:var(--maroon);}
+.btn-small.ghost:disabled:hover{background:transparent;}
+.chip-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.chip{
+  background:#EFE2C4;border:1px solid var(--gold);border-radius:20px;padding:5px 12px;
+  font-size:13px;display:flex;align-items:center;gap:8px;
+}
+.chip .x{cursor:pointer;color:var(--maroon);font-weight:700;}
+
+.total-box{
+  background:var(--maroon);color:var(--cream);border-radius:10px;padding:16px 20px;
+  margin-top:20px;
+}
+.tb-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;}
+.tb-row.main{font-size:15px;}
+.tb-row.main .amount{font-family:'Rozha One',serif;font-size:24px;color:var(--gold);}
+.tb-row.small{font-size:13px;opacity:0.85;border-top:1px dashed rgba(255,255,255,0.25);padding-top:8px;margin-top:4px;}
+
+.veg-strip{border-top:2px dashed var(--gold);margin-top:18px;padding-top:14px;display:flex;justify-content:flex-end;}
+.veg-badge{
+  display:inline-flex;align-items:center;gap:7px;background:#E9F7EF;border:1.5px solid var(--veg);
+  color:var(--veg);padding:6px 14px;border-radius:20px;font-weight:700;font-size:12.5px;letter-spacing:0.3px;
+}
+.veg-icon{width:14px;height:14px;border:2px solid var(--veg);border-radius:2px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.veg-icon::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--veg);}
+
+.action-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.btn{
+  padding:12px 20px;border-radius:9px;border:2px solid var(--maroon);font-weight:600;
+  font-size:14px;cursor:pointer;font-family:'Poppins',sans-serif;
+}
+.btn-primary{background:var(--maroon);color:#fff;}
+.btn-primary:hover{background:var(--maroon-dark);}
+.btn-outline{background:transparent;color:var(--maroon);}
+.btn-outline:hover{background:#F1E4C4;}
+
+.match-panel{
+  background:#F7EFD9;border:1.5px dashed var(--gold);border-radius:10px;padding:10px 14px;margin-top:8px;
+  font-size:13px;
+}
+.match-panel .match-entry{
+  display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #E4D6AC;flex-wrap:wrap;gap:6px;
+}
+.match-panel .match-entry:last-child{border-bottom:none;}
+
+/* ---------- MULTI-MEAL ---------- */
+.meal-card{background:#FBF6EA;border:1.5px dashed #D8C9A3;border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+.meal-card-head{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.meal-card-head select{flex:1;min-width:120px;}
+.meal-card-head input[type=text]{flex:1.4;min-width:160px;}
+.meal-amount{font-weight:700;color:var(--maroon-dark);padding:9px 0;font-size:15px;}
+
+/* ---------- HISTORY / LISTS ---------- */
+.filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.filter-divider{width:1px;align-self:stretch;background:#D8C9A3;margin:2px 2px;}
+.filter-btn{
+  padding:8px 16px;border:1.5px solid var(--maroon);border-radius:20px;background:#fff;color:var(--maroon);
+  font-size:13px;font-weight:600;cursor:pointer;
+}
+.filter-btn.active{background:var(--maroon);color:#fff;}
+.search-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.search-bar input[type=text]{flex:2;min-width:180px;}
+.search-bar input[type=date]{flex:1;min-width:150px;}
+.search-bar .btn-small{align-self:center;}
+.history-note{font-size:12.5px;color:#8A7A5C;margin:-8px 0 16px;}
+.history-card{
+  background:var(--paper);border:1.5px solid #E0D2A8;border-radius:12px;padding:16px 20px;margin-bottom:14px;
+  box-shadow:3px 3px 0 rgba(122,29,46,0.06);
+  position:relative;overflow:hidden;
+}
+.history-card.is-cancelled{opacity:0.72;}
+.cancelled-stamp{
+  position:absolute;top:38%;left:50%;
+  transform:translate(-50%,-50%) rotate(-16deg);
+  border:3px solid #C0272D;color:#C0272D;
+  font-family:'Rozha One',serif;font-weight:700;
+  font-size:26px;letter-spacing:3px;
+  padding:4px 18px;border-radius:6px;
+  background:rgba(255,255,255,0.55);
+  pointer-events:none;z-index:5;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.history-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;flex-wrap:wrap;gap:8px;}
+.history-head h3{margin:0;font-family:'Rozha One',serif;font-size:18px;color:var(--maroon-dark);font-weight:400;}
+.history-head .meta{font-size:12.5px;color:#7A6A4E;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.history-body{display:none;margin-top:14px;padding-top:14px;border-top:1px dashed #DFCFA2;}
+.history-body.open{display:block;}
+
+.pay-pill{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:0.3px;}
+.pay-pill.paid{background:#DFF3E3;color:var(--veg);}
+.pay-pill.unpaid{background:#FBE2E2;color:var(--red);}
+
+.hsg{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:14px;}
+.hsg-cell{background:#F7EFD9;border-radius:8px;padding:8px 10px;text-align:center;}
+.hsg-cell .l{font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;color:#9A8A64;margin-bottom:3px;}
+.hsg-cell .v{font-size:14px;font-weight:600;color:var(--maroon-dark);}
+.hsg-cell.balance .v{color:var(--red);}
+
+.pill{display:inline-block;background:#F1E4C4;padding:3px 10px;border-radius:14px;font-size:12px;margin:2px 4px 2px 0;}
+
+.hist-block{margin-bottom:12px;}
+.hist-block .bl{font-family:'Rozha One',serif;font-size:14px;color:var(--maroon-dark);margin-bottom:3px;}
+.hist-block .bv{font-size:13.5px;line-height:1.6;white-space:pre-line;background:#FBF6EA;border-left:3px solid var(--gold);padding:8px 12px;border-radius:0 6px 6px 0;}
+
+.contact-box{background:#F7EFD9;border-radius:8px;padding:12px 14px;font-size:13.5px;line-height:1.8;margin-bottom:14px;}
+
+/* ---------- SETTINGS ---------- */
+.settings-block{margin-bottom:24px;}
+.item-row{display:flex;align-items:center;gap:8px;background:#FBF6EA;border:1px solid #E8DCB8;border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:13.5px;}
+.item-row .rm{margin-left:auto;color:#B23A3A;cursor:pointer;font-weight:700;}
+.empty-note{color:#8A7A5C;font-size:13.5px;padding:10px 0;}
+.upcoming-date-divider{height:2px;background:var(--maroon);opacity:0.35;margin:2px 0 14px;border-radius:2px;}
+.event-year-divider{display:flex;align-items:center;gap:10px;margin:16px 0 10px;color:var(--maroon-dark);font-weight:700;font-size:13px;}
+.event-year-divider::before,.event-year-divider::after{content:'';flex:1;height:1px;background:var(--maroon);opacity:0.3;}
+
+/* ---------- AUTH GATE (Firebase login for cross-device sync) ---------- */
+.auth-gate{
+  position:fixed;inset:0;z-index:999;
+  background:linear-gradient(135deg,#7A1D2E,#4A0F1C);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.auth-box{
+  background:var(--paper);border-radius:14px;padding:30px 26px;max-width:360px;width:100%;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+.auth-loading{
+  position:fixed;inset:0;z-index:999;
+  background:linear-gradient(135deg,#7A1D2E,#4A0F1C);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;color:var(--cream);
+}
+.auth-loading .spinner{
+  width:40px;height:40px;border-radius:50%;
+  border:4px solid rgba(251,243,227,0.25);border-top-color:var(--cream);
+  animation:spin 0.8s linear infinite;margin-bottom:14px;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* ---------- PAYMENT METHOD MODAL ---------- */
+.pay-modal-backdrop{
+  position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.pay-modal-box{
+  background:var(--paper);border-radius:14px;padding:24px 22px;max-width:360px;width:100%;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+.pay-modal-box h3{font-family:'Rozha One',serif;color:var(--maroon-dark);margin:0 0 4px;font-size:20px;text-align:center;}
+.pay-modal-sub{text-align:center;color:#8A7A5C;font-size:12.5px;margin:0 0 16px;}
+.pay-method-btn{width:100%;margin-bottom:10px;background:var(--maroon);color:var(--cream);text-align:left;font-size:15px;}
+.pay-modal-cancel{text-align:center;font-size:13px;color:#8A7A5C;cursor:pointer;text-decoration:underline;margin-top:4px;}
+.auth-box h2{font-family:'Rozha One',serif;color:var(--maroon-dark);margin:0 0 4px;font-size:24px;text-align:center;}
+.auth-box p.sub{text-align:center;color:#8A7A5C;font-size:13px;margin:0 0 20px;}
+.auth-box input{width:100%;margin-bottom:12px;}
+.auth-box .btn{width:100%;margin-bottom:10px;}
+.auth-toggle{text-align:center;font-size:13px;color:var(--maroon);cursor:pointer;text-decoration:underline;}
+.auth-error{color:#B23A3A;font-size:12.5px;text-align:center;margin:-4px 0 12px;min-height:16px;}
+.sync-badge{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--cream);opacity:0.85;margin-top:4px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#4CD964;}
+.sync-dot.offline{background:#F2A93B;}
+
+@media (max-width:600px){
+  .masthead{flex-direction:column;text-align:center;}
+  .chit{padding:18px 14px 18px 24px;}
+}
+</style>
+</head>
+<body>
+
+<div class="auth-loading" id="authLoading">
+  <div class="spinner"></div>
+  <div>Loading...</div>
+</div>
+
+<div class="auth-gate" id="authGate" style="display:none;">
+  <div class="auth-box">
+    <h2>Omkar Caterers</h2>
+    <p class="sub" id="authSubtitle">Login karke sabhi device par same data dekhein</p>
+    <input type="email" id="auth_email" placeholder="Email" autocomplete="username">
+    <input type="password" id="auth_password" placeholder="Password" autocomplete="current-password">
+    <div class="auth-error" id="authError"></div>
+    <button class="btn btn-primary" id="authSubmitBtn" type="button">Login करें</button>
+    <div class="auth-toggle" id="authToggle">पहली बार? Naya Account बनाएं</div>
+  </div>
+</div>
+
+<div class="app" id="appRoot" style="display:none;">
+
+<div class="pay-modal-backdrop" id="payMethodModal" style="display:none;">
+  <div class="pay-modal-box">
+    <h3>Payment कैसे मिला?</h3>
+    <p class="pay-modal-sub">Amount आधा Cash, आधा Online मिला हो तो "Other / Mix" चुनें</p>
+    <div id="payMethodChoices">
+      <button class="btn pay-method-btn" data-method="Cash">💵 Cash</button>
+      <button class="btn pay-method-btn" data-method="Online">📲 Online</button>
+      <button class="btn pay-method-btn" data-method="Other">🔀 Other / Mix (Cash + Online)</button>
+    </div>
+    <div id="payMethodSplitForm" style="display:none;">
+      <label style="font-size:13.5px;color:#8A7A5C;">Cash में कितना मिला (₹)</label>
+      <input type="number" id="payMethodCashAmt" placeholder="जैसे: 5000" style="margin-bottom:10px;">
+      <label style="font-size:13.5px;color:#8A7A5C;">Online में कितना मिला (₹)</label>
+      <input type="number" id="payMethodOnlineAmt" placeholder="जैसे: 5000" style="margin-bottom:10px;">
+      <button class="btn btn-primary" id="payMethodSplitConfirm" style="width:100%;margin-bottom:10px;">Confirm करें</button>
+    </div>
+    <div class="pay-modal-cancel" id="payMethodCancel">Cancel</div>
+  </div>
+</div>
+
+<div class="pay-modal-backdrop" id="billViewModal" style="display:none;">
+  <div class="pay-modal-box" style="max-width:480px;width:94vw;max-height:88vh;padding:0;overflow:hidden;display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #E8DCB8;flex-shrink:0;">
+      <h3 style="margin:0;font-size:17px;">पुराना Order — Bill</h3>
+      <span id="billViewClose" style="cursor:pointer;font-size:22px;line-height:1;color:#8A7A5C;padding:4px;">✕</span>
+    </div>
+    <iframe id="billViewFrame" style="border:0;width:100%;flex:1;min-height:60vh;background:#fff;"></iframe>
+  </div>
+</div>
+
+  <div class="masthead">
+    <div class="logo-box" id="logoBox"><span class="initials" id="logoInitials">OC</span></div>
+    <div>
+      <h1 id="bizNameDisplay">Omkar Caterers</h1>
+      <p id="bizPhoneDisplay" style="display:none;"></p>
+      <p>Digital Menu &amp; Order Book</p>
+      <div class="sync-badge"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Sync ho raha hai...</span></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="order">नया ऑर्डर</button>
+    <button class="tab-btn" data-tab="multimeal">Multi-Meal Function</button>
+    <button class="tab-btn" data-tab="history">History</button>
+    <button class="tab-btn" data-tab="settings">Menu &amp; Settings</button>
+  </div>
+
+  <!-- ============ NEW ORDER TAB ============ -->
+  <section class="tab-panel active" id="tab-order">
+    <div class="chit">
+      <div class="chit-top">
+        <div class="order-no" id="orderNoLabel">No. 000001</div>
+        <div class="seal">OMKAR<br>CATERERS</div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="f_date">
+        </div>
+        <div class="field">
+          <label>Time / समय</label>
+          <input type="text" id="f_time" placeholder="जैसे: 12:00 PM - 2:00 PM">
+        </div>
+        <div class="field">
+          <label>Guest Count</label>
+          <input type="number" id="f_guests" min="1" placeholder="कितने लोग?">
+        </div>
+        <div class="field">
+          <label>Event</label>
+          <div class="radio-row" id="f_event">
+            <label class="radio-item"><input type="radio" name="event" value="Lunch" checked> Lunch</label>
+            <label class="radio-item"><input type="radio" name="event" value="Dinner"> Dinner</label>
+            <label class="radio-item"><input type="radio" name="event" value="Other"> Other</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Service</label>
+          <div class="radio-row" id="f_serviceType">
+            <label class="radio-item"><input type="radio" name="serviceType" value="Party" checked> Party</label>
+            <label class="radio-item"><input type="radio" name="serviceType" value="Parcel"> Parcel</label>
+          </div>
+        </div>
+      </div>
+      <div class="row" id="otherEventRow" style="display:none;">
+        <div class="field">
+          <label>Event का नाम</label>
+          <input type="text" id="f_eventOther" placeholder="जैसे: Breakfast, High Tea">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Season / त्योहार (अगर हो)</label>
+          <input type="text" id="f_seasonTag" placeholder="जैसे: Ganpati, Diwali, Shaadi (optional)">
+        </div>
+      </div>
+
+      <div class="section-title"><span class="num">1</span>Formalities</div>
+      <div class="row">
+        <label class="radio-item"><input type="checkbox" id="f_jain"> पूर्ण जैन (Full Jain)</label>
+        <label class="radio-item"><input type="checkbox" id="f_noOnionGarlic"> No Onion / Garlic</label>
+      </div>
+      <div class="radio-row" id="f_spice">
+        <label class="radio-item"><input type="radio" name="spice" value="Medium" checked> मीडियम (Medium)</label>
+        <label class="radio-item"><input type="radio" name="spice" value="Spicy"> तीखा (Spicy)</label>
+      </div>
+
+      <div class="section-title"><span class="num">2</span>Welcome Drink</div>
+      <textarea class="menu-textarea" id="txt_welcomeDrink" placeholder="यहाँ items टाइप करें, जैसे:&#10;Aam Panna&#10;Jaljeera&#10;Masala Chaas"></textarea>
+
+      <div class="section-title"><span class="num">3</span>Starter</div>
+      <textarea class="menu-textarea" id="txt_starter" placeholder="यहाँ items टाइप करें, जैसे:&#10;Paneer Tikka&#10;Hara Bhara Kabab"></textarea>
+
+      <div class="section-title"><span class="num">4</span>Main Course</div>
+      <textarea class="menu-textarea big" id="txt_mainCourse" placeholder="यहाँ items टाइप करें, जैसे:&#10;Paneer Butter Masala&#10;Dal Makhani&#10;Jeera Rice&#10;Veg Pulao"></textarea>
+
+      <div class="section-title"><span class="num">5</span>मीठा (Sweet)</div>
+      <textarea class="menu-textarea" id="txt_sweet" placeholder="यहाँ items टाइप करें, जैसे:&#10;Gulab Jamun&#10;Rasgulla"></textarea>
+
+      <div class="section-title"><span class="num">6</span>Bread</div>
+      <textarea class="menu-textarea" id="txt_bread" placeholder="जैसे: Puri, Paratha, Roti, Tandoori Roti"></textarea>
+
+      <div class="section-title"><span class="num">7</span>Extra (Salad / Papad / Achaar...)</div>
+      <div class="option-row" id="addonsOptions"></div>
+
+      <div class="section-title"><span class="num">8</span>Extra Requirement (Table / Chair वगैरह)</div>
+      <div class="tag-input-row">
+        <input type="text" id="f_extraInput" placeholder="जैसे: 5 Extra Table">
+        <input type="number" id="f_extraAmount" min="0" placeholder="₹ Amount" style="max-width:130px;">
+        <button class="btn-small" id="addExtraBtn" type="button">Add</button>
+      </div>
+      <div class="chip-list" id="extraChips"></div>
+
+      <div class="section-title"><span class="num">9</span>Rate &amp; Customer Details</div>
+      <div class="row">
+        <div class="field">
+          <label>Rate per Plate (₹)</label>
+          <input type="number" id="f_rate" min="0" placeholder="जैसे: 350">
+        </div>
+        <div class="field">
+          <label>Advance मिला (₹)</label>
+          <input type="number" id="f_advance" min="0" placeholder="जैसे: 5000">
+        </div>
+        <div class="field">
+          <label>Customer Name</label>
+          <input type="text" id="f_custName" placeholder="ग्राहक का नाम">
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="f_custPhone" placeholder="मोबाइल नंबर">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:2;">
+          <label>Address</label>
+          <textarea id="f_custAddress" style="min-height:50px;" placeholder="पता"></textarea>
+        </div>
+      </div>
+      <div class="match-panel" id="matchPanel" style="display:none;"></div>
+
+      <div class="total-box">
+        <div class="tb-row small"><span>Plates (Guests × Rate)</span><span id="platesTotalDisplay">₹ 0</span></div>
+        <div class="tb-row small"><span>Extra Charges (Table/Chair)</span><span id="extraChargesDisplay">₹ 0</span></div>
+        <div class="tb-row main"><span>Grand Total</span><span class="amount" id="totalDisplay">₹ 0</span></div>
+        <div class="tb-row small"><span>Advance</span><span id="advanceDisplay">₹ 0</span></div>
+        <div class="tb-row small"><span>Balance Due</span><span id="balanceDisplay">₹ 0</span></div>
+      </div>
+
+      <div class="veg-strip"><div class="veg-badge"><span class="veg-icon"></span>100% PURE VEGETARIAN</div></div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="saveOrderBtn">Order Save करें</button>
+        <button class="btn btn-outline" id="printOrderBtn">Print करें</button>
+        <button class="btn btn-outline" id="waOrderBtn" style="border-color:#25D366;color:#128C4A;">WhatsApp पर PDF भेजें</button>
+        <button class="btn btn-outline" id="resetOrderBtn">नया / Clear</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MULTI-MEAL FUNCTION TAB ============ -->
+  <section class="tab-panel" id="tab-multimeal">
+    <div class="chit">
+      <div class="chit-top">
+        <div class="order-no" id="funcNoLabel">Function No. 000001</div>
+        <div class="seal">OMKAR<br>CATERERS</div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Function / Group का नाम</label>
+          <input type="text" id="mf_title" placeholder="जैसे: Laxminarayan Mandal Snehmilan">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="mf_date">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Customer / Contact Name</label>
+          <input type="text" id="mf_custName" placeholder="नाम">
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="mf_custPhone" placeholder="मोबाइल नंबर">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field" style="flex:2;">
+          <label>Address</label>
+          <textarea id="mf_custAddress" style="min-height:50px;" placeholder="पता"></textarea>
+        </div>
+      </div>
+
+      <div class="section-title"><span class="num">✦</span>Meals</div>
+      <div id="mealSlots"></div>
+      <button class="btn-small ghost" id="addMealBtn" type="button">+ एक और Meal Add करें</button>
+
+      <div class="section-title" style="margin-top:24px;"><span class="num">₹</span>Advance</div>
+      <div class="row">
+        <div class="field">
+          <label>Advance मिला (₹)</label>
+          <input type="number" id="mf_advance" min="0" placeholder="जैसे: 20000">
+        </div>
+      </div>
+
+      <div class="total-box">
+        <div class="tb-row main"><span>Grand Total (सारे meals)</span><span class="amount" id="mfTotalDisplay">₹ 0</span></div>
+        <div class="tb-row small"><span>Advance</span><span id="mfAdvanceDisplay">₹ 0</span></div>
+        <div class="tb-row small"><span>Balance Due</span><span id="mfBalanceDisplay">₹ 0</span></div>
+      </div>
+
+      <div class="veg-strip"><div class="veg-badge"><span class="veg-icon"></span>100% PURE VEGETARIAN</div></div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="mfSaveBtn">Function Save करें</button>
+        <button class="btn btn-outline" id="mfPrintBtn">Print करें</button>
+        <button class="btn btn-outline" id="waFuncBtn" style="border-color:#25D366;color:#128C4A;">WhatsApp पर Text भेजें</button>
+        <button class="btn btn-outline" id="waFuncPdfBtn" style="border-color:#25D366;color:#128C4A;">WhatsApp पर PDF भेजें</button>
+        <button class="btn btn-outline" id="mfResetBtn">नया / Clear</button>
+      </div>
+    </div>
+
+    <div class="section-title"><span class="num">☆</span>आज (Today)</div>
+    <div id="mfTodayList" style="margin-bottom:16px;"></div>
+
+    <div class="section-title"><span class="num">★</span>आने वाले Functions (Upcoming)</div>
+    <div id="mfUpcomingList" style="margin-bottom:24px;"></div>
+
+    <div class="section-title"><span class="num">☰</span>Saved Functions</div>
+    <div class="search-bar">
+      <input type="text" id="mfSearch" placeholder="नाम या मोबाइल नंबर से खोजें...">
+      <input type="date" id="mfDateFilter">
+      <button class="btn-small" id="mfClearFilterBtn" type="button">Clear</button>
+    </div>
+    <div id="mfList"></div>
+  </section>
+
+  <!-- ============ HISTORY TAB ============ -->
+  <section class="tab-panel" id="tab-history">
+    <button class="btn btn-outline" id="eventSearchToggleBtn" type="button" style="width:100%;margin-bottom:14px;">🔍 Event / Season खोजें (जैसे Ganpati, Diwali)</button>
+    <div id="eventSearchPanel" style="display:none;">
+      <div class="search-bar" style="margin-bottom:8px;">
+        <input type="text" id="eventSearchInput" placeholder="Event का नाम खोजें, जैसे: Ganpati या Ganpati 2025">
+        <button class="btn-small" id="eventSearchClear" type="button">Clear</button>
+      </div>
+      <div class="history-note" id="eventSearchNote"></div>
+      <div id="eventSearchList" style="margin-bottom:24px;"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:0;"><span class="num">📌</span>आज (Today)</div>
+    <div id="todayList" style="margin-bottom:24px;"></div>
+
+    <div class="section-title"><span class="num">★</span>आने वाले Events (Upcoming)</div>
+    <div id="upcomingList" style="margin-bottom:24px;"></div>
+
+    <div class="filter-row" id="paymentFilterRow">
+      <button class="filter-btn active" data-pf="all" type="button">All</button>
+      <button class="filter-btn" data-pf="paid" type="button">Paid</button>
+      <button class="filter-btn" data-pf="unpaid" type="button">Unpaid</button>
+      <span class="filter-divider"></span>
+      <button class="filter-btn active" id="sfAll" data-sf="all" type="button">All Type</button>
+      <button class="filter-btn" data-sf="Party" type="button">Party</button>
+      <button class="filter-btn" data-sf="Parcel" type="button">Parcel</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="historySearch" placeholder="नाम या मोबाइल नंबर से खोजें...">
+      <input type="date" id="historyDateFilter">
+      <button class="btn-small" id="clearHistoryFilter" type="button">Clear</button>
+    </div>
+    <div class="history-note" id="historyNote"></div>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ============ SETTINGS TAB ============ -->
+  <section class="tab-panel" id="tab-settings">
+    <div class="chit">
+      <div class="settings-block">
+        <div class="section-title"><span class="num">★</span>Business Details</div>
+        <div class="row">
+          <div class="field">
+            <label>Caterer का नाम</label>
+            <input type="text" id="s_bizName">
+          </div>
+          <div class="field">
+            <label>Mobile Number(s)</label>
+            <input type="text" id="s_bizPhone" placeholder="जैसे: 9763824571, 9579385895">
+          </div>
+          <div class="field">
+            <label>Logo अपलोड करें</label>
+            <input type="file" id="s_logoInput" accept="image/*">
+          </div>
+        </div>
+        <button class="btn-small" id="saveBizBtn" style="margin-top:8px;">Save</button>
+      </div>
+
+      <div class="settings-block">
+        <div class="section-title"><span class="num">★</span>Extra / Add-on Items</div>
+        <p class="empty-note">यह list "New Order" टैब के "Extra" section में options के रूप में दिखेगी।</p>
+        <div class="tag-input-row">
+          <input type="text" id="s_addonInput" placeholder="नया extra item, जैसे: Ice Cream">
+          <button class="btn-small" id="s_addAddonBtn" type="button">Add</button>
+        </div>
+        <div id="s_addonList" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="settings-block">
+        <div class="section-title"><span class="num">🎉</span>Festival Calendar (Hidden Auto-Tagging)</div>
+        <p class="empty-note">यह list "Event / Season खोजें" (History tab) को date से festival पहचानने में मदद करती है — भले ही किसी order में "Ganpati" टाइप न किया हो, अगर उसकी date यहाँ की range में आती है तो search में मिल जाएगा। Dates lunar calendar पर depend करती हैं, इसलिए हर साल सही date check करके यहाँ edit/add कर लें।</p>
+        <div id="s_festivalList" style="margin-top:10px;"></div>
+        <div class="row" style="margin-top:10px;">
+          <div class="field">
+            <label>Festival का नाम</label>
+            <input type="text" id="s_festName" placeholder="जैसे: Ganpati">
+          </div>
+          <div class="field">
+            <label>शुरू Date</label>
+            <input type="date" id="s_festStart">
+          </div>
+          <div class="field">
+            <label>ख़त्म Date</label>
+            <input type="date" id="s_festEnd">
+          </div>
+        </div>
+        <button class="btn-small" id="s_addFestBtn" type="button" style="margin-top:8px;">Add करें</button>
+      </div>
+
+      <div class="settings-block">
+        <div class="section-title"><span class="num">★</span>Data Backup</div>
+        <p class="empty-note">अपना data सुरक्षित रखने के लिए backup file save करें। कभी भी उसी file को restore कर सकते हैं।</p>
+        <div class="action-row">
+          <button class="btn btn-outline" id="exportBtn">Backup Export करें</button>
+          <button class="btn btn-outline" id="importBtn">Backup Restore करें</button>
+          <input type="file" id="importFile" accept=".json" style="display:none;">
+        </div>
+      </div>
+
+      <div class="settings-block">
+        <div class="section-title"><span class="num">★</span>Account (Cross-Device Sync)</div>
+        <p class="empty-note">Login: <strong id="s_accountEmail">—</strong><br>इसी email/password से दूसरे device (Tablet/Computer) पर login करने से data अपने-आप sync हो जाएगा।</p>
+        <button class="btn btn-outline" id="logoutBtn">Logout करें</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'omkarCaterersData_v5';
+function makeId(prefix){
+  return (prefix||'id')+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
+}
+const DIRTY_KEY = 'omkarCaterersDirty_v5';
+const BUSINESS_DIRTY_KEY = 'omkarCaterersBizDirty_v5';
+function readLocalDirty(){
+  try{ return localStorage.getItem(DIRTY_KEY)==='1'; }catch(e){ return false; }
+}
+function writeLocalDirty(v){
+  try{
+    if(v) localStorage.setItem(DIRTY_KEY, '1');
+    else localStorage.removeItem(DIRTY_KEY);
+  }catch(e){}
+}
+function readBusinessDirty(){
+  try{ return localStorage.getItem(BUSINESS_DIRTY_KEY)==='1'; }catch(e){ return false; }
+}
+function writeBusinessDirty(v){
+  try{
+    if(v) localStorage.setItem(BUSINESS_DIRTY_KEY, '1');
+    else localStorage.removeItem(BUSINESS_DIRTY_KEY);
+  }catch(e){}
+}
+let localDataDirty = readLocalDirty(); // survives page reload — offline edits not yet on cloud
+let businessDirty = readBusinessDirty(); // survives reload — name/phone/logo offline edits
+let settingsFormDirty = false; // Settings fields being edited - don't clobber mid-type
+let cloudReplaceLockUntil = 0; // after true cloud replace, skip merge-from-cache briefly
+function setLocalDataDirty(v){
+  localDataDirty = !!v;
+  writeLocalDirty(localDataDirty);
+}
+function setBusinessDirty(v){
+  businessDirty = !!v;
+  writeBusinessDirty(businessDirty);
+}
+
+const CATEGORY_LABELS = {
+  welcomeDrink:'Welcome Drink', starter:'Starter', mainCourse:'Main Course',
+  sweet:'Sweet', bread:'Bread'
+};
+const CATEGORY_KEYS = Object.keys(CATEGORY_LABELS);
+// Purana dead default logo hata diya gaya hai (file size ~18KB bacha).
+// Sirf ek chhota fingerprint (prefix + exact length) rakha hai taaki agar
+// kisi purani synced backup mein wo bada base64 abhi bhi bacha ho, to use
+// pehchan kar null kiya jaa sake.
+const OLD_UNWANTED_LOGO_PREFIX = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAIAAA";
+const OLD_UNWANTED_LOGO_LEN = 18022;
+function isOldUnwantedLogo(v){
+  return typeof v==='string' && v.length===OLD_UNWANTED_LOGO_LEN && v.startsWith(OLD_UNWANTED_LOGO_PREFIX);
+}
+const DEFAULT_LOGO = null;
+const DEFAULT_ADDONS = ['Salad','Papad','Achaar','Chutney','Mukhwas','Mineral Water'];
+// Hidden festival calendar - approximate Hindu lunar-calendar dates for major
+// festivals. Ganesh Chaturthi/Diwali jaise festivals har saal alag date par
+// aate hain (chand ke calendar se), isliye exact date guarantee nahi hai -
+// Menu & Settings > Festival Calendar mein se owner khud edit/add kar sakta hai.
+// Yeh sirf orders ko auto-tag karne ke kaam aata hai jab customer ne khud
+// "Ganpati" jaisa kuch type nahi kiya ho, taaki season se pehle purane
+// customers ko dhoondhna aasaan ho.
+const DEFAULT_FESTIVALS = [
+  {id:'gp2024', name:'Ganpati', start:'2024-09-07', end:'2024-09-17'},
+  {id:'gp2025', name:'Ganpati', start:'2025-08-27', end:'2025-09-06'},
+  {id:'gp2026', name:'Ganpati', start:'2026-09-14', end:'2026-09-24'},
+  {id:'gp2027', name:'Ganpati', start:'2027-09-04', end:'2027-09-14'},
+  {id:'gp2028', name:'Ganpati', start:'2028-08-23', end:'2028-09-02'},
+  {id:'dw2024', name:'Diwali', start:'2024-10-29', end:'2024-11-03'},
+  {id:'dw2025', name:'Diwali', start:'2025-10-18', end:'2025-10-22'},
+  {id:'dw2026', name:'Diwali', start:'2026-11-05', end:'2026-11-10'},
+  {id:'dw2027', name:'Diwali', start:'2027-10-26', end:'2027-10-31'},
+  {id:'dw2028', name:'Diwali', start:'2028-10-14', end:'2028-10-19'}
+];
+const MEAL_TYPES = ['Breakfast','Lunch','Hi-Tea','Dinner','Other'];
+
+/* ===================== PRINT (clean, low-ink, new window) ===================== */
+const PRINT_STYLE = `
+  html,body{height:auto !important;overflow:visible !important;}
+  body{font-family:'Poppins',Arial,sans-serif;color:#111;padding:6px;max-width:500px;margin:0 auto;font-size:14px;line-height:1.32;}
+  .p-shree{text-align:center;font-size:12px;font-weight:700;letter-spacing:1.5px;color:#7A1D2E;margin-bottom:2px;}
+  .p-header{text-align:center;font-size:20px;font-weight:700;margin-bottom:2px;}
+  .p-phone{text-align:center;font-size:11.5px;font-weight:600;color:#333;margin-bottom:2px;}
+  .p-sub{text-align:left;font-size:10px;letter-spacing:0.5px;color:#777;margin-bottom:6px;}
+  .p-line{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed #999;padding:3px 0;font-size:13.5px;page-break-inside:avoid;}
+  .p-line.p-address{flex-direction:column;align-items:flex-start;gap:2px;}
+  .p-line.p-address span:last-child{text-align:left;}
+  .p-inforow{display:flex;flex-wrap:wrap;column-gap:14px;row-gap:2px;border-bottom:1px dashed #999;padding:4px 0;font-size:13.5px;page-break-inside:avoid;}
+  .p-inforow strong{font-weight:700;margin-right:3px;}
+  .p-section{font-weight:700;margin-top:6px;margin-bottom:2px;font-size:15px;border-bottom:1px solid #333;padding-bottom:2px;page-break-after:avoid;}
+  .p-body{white-space:pre-line;font-size:15px;margin-bottom:2px;line-height:1.35;page-break-inside:avoid;}
+  .p-total{font-size:15.5px;font-weight:700;margin-top:6px;text-align:right;page-break-inside:avoid;}
+  .p-meal-block{margin-top:6px;padding-top:4px;border-top:1px solid #ccc;page-break-inside:avoid;}
+  .p-meal-stats{border:1px solid #C89B3C;border-radius:4px;margin:3px 0 5px;overflow:hidden;}
+  .p-meal-stats .p-line{border-bottom:1px solid #E5D6B0;padding:4px 8px;margin:0;}
+  .p-meal-stats .p-line:last-child{border-bottom:none;}
+  .p-meal-stats .p-line span:first-child{color:#555;}
+  .p-meal-stats .p-line span:last-child{font-weight:700;}
+  .p-line-amount{font-weight:700;color:#7A1D2E;background:#FBF3E3;}
+  .p-veg-wrap{margin-top:6px;padding-top:4px;border-top:1.5px dashed #C89B3C;display:flex;justify-content:flex-end;page-break-inside:avoid;}
+  .p-veg{display:flex;align-items:center;gap:6px;color:#1E7B34;font-weight:700;font-size:12px;letter-spacing:0.2px;}
+  .p-veg-icon{width:12px;height:12px;border:2px solid #1E7B34;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;}
+  .p-veg-icon::after{content:'';width:6px;height:6px;border-radius:50%;background:#1E7B34;}
+  .p-totals-block{page-break-inside:avoid;}
+  @media print{ @page{ size: A5 portrait; margin:5mm; } }
+`;
+function openBillView(order){
+  // Purane order ka poora bill ek chhote modal ke andar dikhata hai (jaise print
+  // preview), taaki naya order type karte waqt yeh dekha ja sake ki customer ne
+  // pehle kya order kiya tha. X dabane par bas modal band hota hai - abhi jo
+  // naya order form bhara ja raha hai wo bilkul waisa hi (untouched) rehta hai.
+  const modal = document.getElementById('billViewModal');
+  const frame = document.getElementById('billViewFrame');
+  frame.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<link rel="preconnect" href="https://fonts.googleapis.com">'
+    +'<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">'
+    +'<style>'+PRINT_STYLE+' body{padding:14px;}</style></head><body>'+buildOrderPrintHtml(order)+'</body></html>';
+  modal.style.display='flex';
+}
+document.getElementById('billViewClose').addEventListener('click', ()=>{
+  document.getElementById('billViewModal').style.display='none';
+});
+document.getElementById('billViewModal').addEventListener('click', (e)=>{
+  if(e.target.id==='billViewModal') document.getElementById('billViewModal').style.display='none';
+});
+function printHtmlDocument(bodyHtml, title){
+  // window.open('', '_blank') kabhi-kabhi installed PWA ya kuch Android
+  // WebView-based browsers mein sahi se page-by-page print nahi karta - bill
+  // ka neeche wala hissa cut ho jaata hai. Isliye ek off-screen hidden iframe
+  // (same page ke andar hi) use karte hain, jo print ke liye zyada reliable
+  // hai kyunki ismein popup/naya-window wali dikkatein nahi aati.
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.top = '-10000px';
+  iframe.style.left = '-10000px';
+  iframe.style.width = '800px';
+  iframe.style.height = '1200px';
+  iframe.style.border = '0';
+  document.body.appendChild(iframe);
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'</title>'
+    +'<link rel="preconnect" href="https://fonts.googleapis.com">'
+    +'<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">'
+    +'<style>'+PRINT_STYLE+'</style></head><body>'+bodyHtml+'</body></html>');
+  doc.close();
+  // Print only after the iframe has fully loaded AND fonts have finished loading -
+  // printing before layout/fonts settle was causing physical prints to be cut off
+  // partway through on some Android print pipelines. We wait for real signals
+  // (fonts.ready) instead of relying on a fixed timer, with a safety fallback.
+  let printed = false;
+  const cleanupIframe = ()=>{ if(iframe.parentNode) iframe.parentNode.removeChild(iframe); };
+  const doPrint = ()=>{
+    if(printed) return;
+    printed = true;
+    try{ iframe.contentWindow.focus(); iframe.contentWindow.print(); }catch(e){}
+    // Print dialog ke liye thoda time dete hain, phir hidden iframe hata dete hain.
+    setTimeout(cleanupIframe, 3000);
+  };
+  const whenReady = ()=>{
+    try{
+      if(doc.fonts && doc.fonts.ready){
+        doc.fonts.ready.then(doPrint).catch(doPrint);
+      } else {
+        doPrint();
+      }
+    }catch(e){ doPrint(); }
+  };
+  setTimeout(whenReady, 200);
+  // Safety net in case load/fonts events never fire for some reason
+  setTimeout(doPrint, 2200);
+}
+
+function defaultData(){
+  return {
+    business:{ name:'Omkar Caterers', phone:'', logo:DEFAULT_LOGO },
+    orderCounter: 0,
+    funcCounter: 0,
+    addonOptions: DEFAULT_ADDONS.slice(),
+    orders:[],
+    functions:[],
+    festivals: DEFAULT_FESTIVALS.slice(),
+    deletedOrderIds: [],
+    deletedFunctionIds: [],
+    deletedFestivalIds: [],
+    deletedAddons: []
+  };
+}
+
+let DATA = loadData();
+let preLoginLocalData = JSON.parse(JSON.stringify(DATA)); // snapshot lene se pehle ka local data - agar Firestore par pehle se kuch aur ho to isse merge karne ke kaam aayega
+let currentOrder = freshOrder();
+let currentFunction = freshFunction();
+let paymentFilter = 'all';
+let serviceFilter = 'all';
+
+/* ================= FIREBASE (cross-device live sync) ================= */
+// STEP 1: Go to https://console.firebase.google.com -> Create a project (free "Spark" plan is enough).
+// STEP 2: Build > Authentication -> Get started -> enable "Email/Password" sign-in method.
+// STEP 3: Build > Firestore Database -> Create database (start in production mode) -> pick any region.
+// STEP 4: In Firestore "Rules" tab, paste this and Publish (so only YOU can read/write YOUR data):
+//   rules_version = '2';
+//   service cloud.firestore {
+//     match /databases/{database}/documents {
+//       match /caterers/{userId} {
+//         allow read, write: if request.auth != null && request.auth.uid == userId;
+//       }
+//     }
+//   }
+// STEP 5: Project Settings (gear icon) -> General -> "Your apps" -> Add app -> Web (</>) ->
+//         register it -> copy the firebaseConfig object values into the object below.
+// Until you fill this in, the app works exactly as before (local-only, no login screen).
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAZR12fuvyznqpDwBAyVyPXTjF3Fi0GJjY",
+  authDomain: "digital-menu-56411.firebaseapp.com",
+  projectId: "digital-menu-56411",
+  storageBucket: "digital-menu-56411.firebasestorage.app",
+  messagingSenderId: "163140963905",
+  appId: "1:163140963905:web:c8db4f7357a4cfe831c0c0"
+};
+let firebaseReady = false;
+let auth, db, firestoreUnsub = null;
+try{
+  if(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('PASTE_')!==0 && window.firebase){
+    firebase.initializeApp(FIREBASE_CONFIG);
+    auth = firebase.auth();
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+    db = firebase.firestore();
+    db.enablePersistence().catch(()=>{});
+    firebaseReady = true;
+  }
+}catch(e){ console.error('Firebase init failed', e); firebaseReady = false; }
+
+function hideAuthLoading(){
+  const el = document.getElementById('authLoading');
+  if(el) el.style.display='none';
+}
+function showApp(){
+  hideAuthLoading();
+  document.getElementById('authGate').style.display='none';
+  document.getElementById('appRoot').style.display='block';
+}
+function showAuthGate(){
+  hideAuthLoading();
+  document.getElementById('authGate').style.display='flex';
+  document.getElementById('appRoot').style.display='none';
+}
+function setSyncStatus(online){
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncLabel');
+  if(!dot) return;
+  // fromCache alone is not "offline" - also check navigator.onLine
+  const netOk = (typeof navigator!=='undefined') ? navigator.onLine : true;
+  const reallyOnline = online && netOk;
+  if(reallyOnline){ dot.classList.remove('offline'); label.textContent='Sync ho gaya'; }
+  else { dot.classList.add('offline'); label.textContent= netOk ? 'Sync pending...' : 'Offline - local save (net aate hi merge hoga)'; }
+}
+window.addEventListener('online', ()=>{ setSyncStatus(true); if((typeof localDataDirty!=='undefined' && localDataDirty) || (typeof businessDirty!=='undefined' && businessDirty)){ if(typeof saveData==='function') saveData(); } });
+window.addEventListener('offline', ()=> setSyncStatus(false));
+function refreshAllViews(){
+  renderHeader();
+  // Don't yank caret while user is typing in a menu textarea / input
+  const ae = document.activeElement;
+  const typing = ae && (ae.tagName==='TEXTAREA' || (ae.tagName==='INPUT' && ae.type!=='button' && ae.type!=='submit'));
+  if(!typing){
+    fillItemTextareas();
+    updateTotal();
+  }
+  renderAddonOptions();
+  const histTab = document.getElementById('tab-history');
+  const setTab = document.getElementById('tab-settings');
+  const mmTab = document.getElementById('tab-multimeal');
+  if(histTab && histTab.classList.contains('active')) renderHistory();
+  // Settings open + dirty/editing: don't overwrite name/phone mid-edit
+  if(setTab && setTab.classList.contains('active') && !settingsFormDirty && !businessDirty) renderSettings();
+  if(mmTab && mmTab.classList.contains('active') && !typing) renderFunctionsList();
+}
+// Duplicate number repair: agar do devices offline hote hue kisi ek jaisi wajah
+// se same orderNo/funcNo assign kar dete hain (rare, lekin possible), to isse
+// pakad ke baad wale (createdAt ke hisaab se) ko naya unique number de do -
+// pehla wala apna number rakhta hai. Global function hai taaki mergeCatererData
+// (pehli login) aur mergeDataSets (normal save) - dono ise use kar sakein.
+function dedupeNumbers(list, numKey){
+  const seen = new Set();
+  let maxNum = list.reduce((m,x)=> Math.max(m, x[numKey]||0), 0);
+  list.slice().sort((a,b)=> (a.createdAt||'').localeCompare(b.createdAt||'')).forEach(x=>{
+    const n = x[numKey];
+    if(!n) return;
+    if(seen.has(n)){ maxNum += 1; x[numKey] = maxNum; }
+    else { seen.add(n); }
+  });
+  return maxNum;
+}
+function mergeCatererData(localData, cloudData){
+  // Cloud data jeetta hai conflicts mein, lekin local mein jo orders/functions cloud mein
+  // maujood nahi hain (jaise pehli baar login karte waqt is device ka purana local data),
+  // unhe khona nahi chahiye - unhe wapas jod dete hain.
+  // Match `id` se karte hain, `orderNo`/`funcNo` se nahi - do alag devices offline honge
+  // to unka counter alag-alag badh sakta hai aur same orderNo do different orders ko mil
+  // sakta hai, jisse ek order galti se duplicate maan kar drop ho jaata.
+  const merged = JSON.parse(JSON.stringify(cloudData));
+  if(!merged.orders) merged.orders = [];
+  if(!merged.functions) merged.functions = [];
+  // Tombstones: agar is device ke local data mein koi order/function pehle
+  // (login se pehle) delete kiya gaya tha, ya cloud par kisi aur device se
+  // delete ho chuka hai, to use yahan wapas na jodo - warna delete hua record
+  // pehle login ke baad hi wapas zinda ho jaata (yahi is bug ki jad thi).
+  const delOrderSet = new Set([...(cloudData.deletedOrderIds||[]), ...(localData.deletedOrderIds||[])].map(String));
+  const delFuncSet = new Set([...(cloudData.deletedFunctionIds||[]), ...(localData.deletedFunctionIds||[])].map(String));
+  merged.orders = merged.orders.filter(o=> !delOrderSet.has(String(o.id)));
+  merged.functions = merged.functions.filter(f=> !delFuncSet.has(String(f.id)));
+  merged.deletedOrderIds = Array.from(delOrderSet);
+  merged.deletedFunctionIds = Array.from(delFuncSet);
+  // Same-id: local jeette agar local newer ho (createdAt/updatedAt) YA localDataDirty
+  // — offline edit + page reload par cloud purana version wapas na laaye.
+  function recTime(x){ return String((x && (x.updatedAt || x.createdAt)) || ''); }
+  const orderMap = new Map();
+  (merged.orders||[]).forEach(o=> orderMap.set(String(o.id), o));
+  (localData.orders||[]).forEach(o=>{
+    if(delOrderSet.has(String(o.id))) return;
+    const id = String(o.id);
+    const cur = orderMap.get(id);
+    if(!cur){ orderMap.set(id, o); return; }
+    // Local only if STRICTLY newer (tie → cloud wins). Dirty still prefers local.
+    if(typeof localDataDirty !== 'undefined' && localDataDirty && recTime(o) >= recTime(cur)){ orderMap.set(id, o); }
+    else if(recTime(o) > recTime(cur)){ orderMap.set(id, o); }
+    // else keep cloud (cur)
+  });
+  merged.orders = Array.from(orderMap.values());
+  const funcMap = new Map();
+  (merged.functions||[]).forEach(f=> funcMap.set(String(f.id), f));
+  (localData.functions||[]).forEach(f=>{
+    if(delFuncSet.has(String(f.id))) return;
+    const id = String(f.id);
+    const cur = funcMap.get(id);
+    if(!cur){ funcMap.set(id, f); return; }
+    if(typeof localDataDirty !== 'undefined' && localDataDirty && recTime(f) >= recTime(cur)){ funcMap.set(id, f); }
+    else if(recTime(f) > recTime(cur)){ funcMap.set(id, f); }
+  });
+  merged.functions = Array.from(funcMap.values());
+  // Duplicate order/function number repair - do offline devices kabhi-kabhi
+  // ek jaisa number de sakte hain, yahan bhi (jaise mergeDataSets mein) pakad
+  // ke theek kar dete hain taaki pehli sync ke baad bhi numbers unique rahein.
+  dedupeNumbers(merged.orders, 'orderNo');
+  dedupeNumbers(merged.functions, 'funcNo');
+  const allOrderNos = merged.orders.map(o=>o.orderNo||0);
+  merged.orderCounter = Math.max(cloudData.orderCounter||0, localData.orderCounter||0, ...(allOrderNos.length?allOrderNos:[0]));
+  const allFuncNos = merged.functions.map(f=>f.funcNo||0);
+  merged.funcCounter = Math.max(cloudData.funcCounter||0, localData.funcCounter||0, ...(allFuncNos.length?allFuncNos:[0]));
+  // Business profile (name/phone/logo) aur custom addons bhi is device ke local data
+  // mein ho sakte hain jo cloud mein pehli baar sync hone se pehle set kiye gaye the -
+  // sirf cloud value use karne se woh local setup lose ho sakta tha.
+  if(localData.business){
+    if(!merged.business) merged.business = {};
+    if((!merged.business.name || merged.business.name==='Omkar Caterers') && localData.business.name) merged.business.name = localData.business.name;
+    if(!merged.business.phone && localData.business.phone) merged.business.phone = localData.business.phone;
+    if(!merged.business.logo && localData.business.logo) merged.business.logo = localData.business.logo;
+  }
+  const delAddonSet = new Set([...(cloudData.deletedAddons||[]), ...(localData.deletedAddons||[])]);
+  const addonSet = new Set([...(merged.addonOptions||[]), ...(localData.addonOptions||[])]);
+  delAddonSet.forEach(a=> addonSet.delete(a));
+  merged.addonOptions = Array.from(addonSet);
+  merged.deletedAddons = Array.from(delAddonSet);
+  const delFestSet = new Set([...(cloudData.deletedFestivalIds||[]), ...(localData.deletedFestivalIds||[])].map(String));
+  const festMap = new Map();
+  (merged.festivals||[]).forEach(fe=> festMap.set(String(fe.id), fe));
+  (localData.festivals||[]).forEach(fe=> festMap.set(String(fe.id), fe));
+  delFestSet.forEach(id=> festMap.delete(id));
+  merged.festivals = Array.from(festMap.values());
+  merged.deletedFestivalIds = Array.from(delFestSet);
+  return merged;
+}
+let firstSyncAfterLoginDone = false;
+function startFirestoreSync(uid){
+  if(firestoreUnsub){ firestoreUnsub(); firestoreUnsub=null; }
+  firstSyncAfterLoginDone = false;
+  const docRef = db.collection('caterers').doc(uid);
+  firestoreUnsub = docRef.onSnapshot((snap)=>{
+    if(snap.exists){
+      let incoming = normalizeFullData(snap.data());
+      // First login after page load: merge ANY local pre-login data (orders,
+      // functions, addons, festivals, business, tombstones) - not only when
+      // order/function counts grow.
+      if(!firstSyncAfterLoginDone){
+        // ONLY push local→cloud when we actually have un-synced local edits.
+        // Otherwise every refresh was rewriting cloud with this device's copy and
+        // could resurrect stale Unpaid over another device's Paid (same createdAt).
+        if(localDataDirty || businessDirty){
+          const merged = mergeCatererData(preLoginLocalData || DATA, incoming);
+          incoming = mergeDataSets(incoming, merged, businessDirty);
+          docRef.set(incoming).then(()=>{
+            setLocalDataDirty(false);
+            setBusinessDirty(false);
+          }).catch(err=>{
+            console.error(err);
+            setLocalDataDirty(true);
+          });
+        }
+        firstSyncAfterLoginDone = true;
+      } else if(Date.now() < cloudReplaceLockUntil){
+        // After explicit cloud replace, ignore stale cache snapshots briefly
+        try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(e){}
+        refreshAllViews();
+        setSyncStatus(navigator.onLine);
+        return;
+      } else if(localDataDirty || businessDirty){
+        // Later snapshots: merge local un-synced edits once, single write
+        incoming = mergeDataSets(incoming, DATA, businessDirty);
+        docRef.set(incoming).then(()=>{
+          setLocalDataDirty(false);
+          setBusinessDirty(false);
+        }).catch(err=>{
+          console.error(err);
+          setLocalDataDirty(true);
+        });
+      }
+      DATA = incoming;
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(e){}
+      refreshAllViews();
+      const fromCache = !!(snap.metadata && snap.metadata.fromCache);
+      setSyncStatus(!fromCache && navigator.onLine);
+    } else {
+      // Empty cloud doc — push current local once (signup / first use)
+      docRef.set(DATA).catch(err=> console.error(err));
+    }
+  }, (err)=>{ console.error(err); setSyncStatus(false); });
+}
+function friendlyAuthError(err){
+  const map = {
+    'auth/user-not-found':'यह email registered नहीं है। नीचे "Naya Account बनाएं" दबाएं।',
+    'auth/wrong-password':'Password गलत है।',
+    'auth/invalid-credential':'यह email registered नहीं है या Password गलत है। पहली बार इस्तेमाल कर रहे हैं तो नीचे "Naya Account बनाएं" दबाकर पहले account बनाएं।',
+    'auth/email-already-in-use':'यह email पहले से registered है। ऊपर "Login करें" mode में जाकर Login करें।',
+    'auth/weak-password':'Password कम से कम 6 अक्षर का होना चाहिए।',
+    'auth/invalid-email':'Email सही format में नहीं है।',
+    'auth/network-request-failed':'Internet check करें।'
+  };
+  return map[err.code] || ('कुछ गलत हुआ: '+(err.message||''));
+}
+if(firebaseReady){
+  const syncBadge = document.querySelector('.sync-badge');
+  auth.onAuthStateChanged(user=>{
+    if(user){
+      window.firebaseUser = user;
+      const emailEl = document.getElementById('s_accountEmail');
+      if(emailEl) emailEl.textContent = user.email || '—';
+      showApp();
+      startFirestoreSync(user.uid);
+    } else {
+      window.firebaseUser = null;
+      if(firestoreUnsub){ firestoreUnsub(); firestoreUnsub=null; }
+      showAuthGate();
+    }
+  });
+  let authMode = 'login';
+  document.getElementById('authToggle').addEventListener('click', ()=>{
+    authMode = authMode==='login' ? 'signup' : 'login';
+    document.getElementById('authSubmitBtn').textContent = authMode==='login' ? 'Login करें' : 'Account बनाएं';
+    document.getElementById('authToggle').textContent = authMode==='login' ? 'पहली बार? Naya Account बनाएं' : 'पहले से Account है? Login करें';
+    document.getElementById('authError').textContent = '';
+  });
+  function doAuthSubmit(){
+    const email = document.getElementById('auth_email').value.trim();
+    const pass = document.getElementById('auth_password').value;
+    const errEl = document.getElementById('authError');
+    errEl.textContent = '';
+    if(!email || !pass){ errEl.textContent='Email और Password दोनों भरें।'; return; }
+    if(authMode==='signup'){
+      const hasLocal = (DATA.orders&&DATA.orders.length) || (DATA.functions&&DATA.functions.length);
+      if(hasLocal){
+        if(!confirm('इस device पर पहले से '+(DATA.orders||[]).length+' orders / '+(DATA.functions||[]).length+' functions हैं।\n\nNaya Account बनाने पर ये data नए account में copy हो सकता है।\n\nजारी रखें? (सिर्फ नए खाली business के लिए OK दबाएँ)')) return;
+      }
+      // Refresh preLogin snapshot at signup/login boundary
+      preLoginLocalData = JSON.parse(JSON.stringify(DATA));
+    } else {
+      preLoginLocalData = JSON.parse(JSON.stringify(DATA));
+    }
+    const action = authMode==='login'
+      ? auth.signInWithEmailAndPassword(email,pass)
+      : auth.createUserWithEmailAndPassword(email,pass);
+    action.catch(err=>{ errEl.textContent = friendlyAuthError(err); });
+  }
+  document.getElementById('authSubmitBtn').addEventListener('click', doAuthSubmit);
+  ['auth_email','auth_password'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); doAuthSubmit(); } });
+  });
+  document.getElementById('logoutBtn').addEventListener('click', ()=>{
+    if(localDataDirty || !navigator.onLine){
+      const nO = (DATA.orders||[]).length, nF = (DATA.functions||[]).length;
+      if(!confirm('⚠ कुछ बदलाव अभी cloud पर sync नहीं हुए हो सकते हैं (offline / pending)।\n\nLogout करने पर इस device का local data मिट जाएगा। जो orders cloud तक नहीं पहुँचे, वे खो सकते हैं।\n\nपहले net चालू करके 10 सेकंड wait करें, फिर Logout बेहतर है।\n\nफिर भी Logout?')) return;
+    } else {
+      if(!confirm('Logout करें? इस device का local data clear हो जाएगा ताकि दूसरे account में मिल न जाए। Cloud पर already-synced data safe रहता है।')) return;
+    }
+    if(firestoreUnsub){ try{ firestoreUnsub(); }catch(e){} firestoreUnsub=null; }
+    auth.signOut().then(()=>{
+      try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+      try{ localStorage.removeItem(DIRTY_KEY); }catch(e){}
+      try{ localStorage.removeItem(BUSINESS_DIRTY_KEY); }catch(e){}
+      DATA = defaultData();
+      preLoginLocalData = JSON.parse(JSON.stringify(DATA));
+      setLocalDataDirty(false);
+      setBusinessDirty(false);
+      settingsFormDirty = false;
+      currentOrder = freshOrder();
+      currentFunction = freshFunction();
+      try{
+        // DOM form fields bhi clear — warna agle login par purana naam screen par dikhe
+        if(typeof fillOrderFormFrom==='function') fillOrderFormFrom(currentOrder);
+        if(typeof fillFunctionFormFrom==='function') fillFunctionFormFrom(currentFunction);
+        if(typeof renderHeader==='function') renderHeader();
+      }catch(e){}
+    }).catch(err=> console.error(err));
+  });
+} else {
+  // Firebase config not filled in yet - app works exactly as before, local-only.
+  showApp();
+  const syncBadge = document.querySelector('.sync-badge');
+  if(syncBadge) syncBadge.style.display='none';
+  const logoutBtn = document.getElementById('logoutBtn');
+  if(logoutBtn) logoutBtn.style.display='none';
+  const emailEl = document.getElementById('s_accountEmail');
+  if(emailEl) emailEl.textContent = 'Sync setup नहीं है (local-only mode)';
+}
+
+function normalizeFunctionFields(f){
+  if(!Array.isArray(f.meals) || f.meals.length===0) f.meals = [freshMeal()];
+  f.meals = f.meals.map(m=> Object.assign(freshMeal(), m));
+  if(!f.paymentStatus) f.paymentStatus = 'unpaid';
+  if(f.paymentMethod==null) f.paymentMethod = '';
+  if(f.cancelled==null) f.cancelled = false;
+  if(typeof f.total!=='number') f.total = parseFloat(f.total)||0;
+  if(!f.customerName) f.customerName = '';
+  if(!f.customerPhone) f.customerPhone = '';
+  if(!f.customerAddress) f.customerAddress = '';
+  return f;
+}
+function normalizeFullData(parsed){
+  if(!parsed.addonOptions) parsed.addonOptions = DEFAULT_ADDONS.slice();
+  if(!parsed.business) parsed.business = { name:'Omkar Caterers', phone:'', logo:DEFAULT_LOGO };
+  if(isOldUnwantedLogo(parsed.business.logo)) parsed.business.logo = null;
+  if(parsed.business.phone===undefined) parsed.business.phone='';
+  if(!parsed.functions) parsed.functions = [];
+  if(parsed.funcCounter===undefined) parsed.funcCounter = 0;
+  if(parsed.orderCounter===undefined) parsed.orderCounter = 0;
+  if(!Array.isArray(parsed.festivals)) parsed.festivals = DEFAULT_FESTIVALS.slice();
+  if(!Array.isArray(parsed.deletedOrderIds)) parsed.deletedOrderIds = [];
+  if(!Array.isArray(parsed.deletedFunctionIds)) parsed.deletedFunctionIds = [];
+  if(!Array.isArray(parsed.deletedFestivalIds)) parsed.deletedFestivalIds = [];
+  if(!Array.isArray(parsed.deletedAddons)) parsed.deletedAddons = [];
+  // Delete karte waqt jo id "deleted" list mein daal di gayi thi, use turant
+  // yahan bhi hata do - taaki restore hui (localStorage se load hui) purani
+  // copy mein bhi wo record turant gayab dikhe, sync ka wait na karna pade.
+  const delOrderSet = new Set(parsed.deletedOrderIds.map(String));
+  const delFuncSet = new Set(parsed.deletedFunctionIds.map(String));
+  const delFestSet = new Set(parsed.deletedFestivalIds.map(String));
+  const delAddonSet = new Set(parsed.deletedAddons);
+  parsed.orders = (parsed.orders||[]).filter(o=> !delOrderSet.has(String(o.id)));
+  parsed.functions = (parsed.functions||[]).filter(f=> !delFuncSet.has(String(f.id)));
+  parsed.festivals = parsed.festivals.filter(fe=> !delFestSet.has(String(fe.id)));
+  parsed.addonOptions = parsed.addonOptions.filter(a=> !delAddonSet.has(a));
+  parsed.orders = (parsed.orders||[]).map(o=> normalizeOrderFields(o));
+  parsed.functions = parsed.functions.map(f=> normalizeFunctionFields(f));
+  return parsed;
+}
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      return normalizeFullData(JSON.parse(raw));
+    }
+    const oldKeys = ['omkarCaterersData_v4','omkarCaterersData_v3','omkarCaterersData_v2','omkarCaterersData_v1'];
+    for(const ok of oldKeys){
+      const old = localStorage.getItem(ok);
+      if(old){
+        const parsed = JSON.parse(old);
+        const migrated = defaultData();
+        migrated.business = parsed.business || migrated.business;
+        if(isOldUnwantedLogo(migrated.business.logo)) migrated.business.logo = null;
+        if(migrated.business.phone===undefined) migrated.business.phone='';
+        migrated.orderCounter = parsed.orderCounter || 0;
+        migrated.addonOptions = parsed.addonOptions || DEFAULT_ADDONS.slice();
+        migrated.orders = (parsed.orders||[]).map(o=>{
+          const items = {};
+          CATEGORY_KEYS.forEach(k=>{
+            const v = o.items ? o.items[k] : '';
+            items[k] = Array.isArray(v) ? v.join(', ') : (v||'');
+          });
+          let addons = [];
+          if(o.items && o.items.addons){
+            addons = Array.isArray(o.items.addons) ? o.items.addons : String(o.items.addons).split(',').map(s=>s.trim()).filter(Boolean);
+          } else if(Array.isArray(o.addons)){
+            addons = o.addons;
+          }
+          return normalizeOrderFields(Object.assign({}, o, {
+            items, addons,
+            time: o.time || '',
+            advance: o.advance || 0,
+            paymentStatus: o.paymentStatus || 'unpaid'
+          }));
+        });
+        return migrated;
+      }
+    }
+  }catch(e){ console.error(e); }
+  return defaultData();
+}
+function normalizeOrderFields(o){
+  if(!o.items || typeof o.items !== 'object') o.items = {};
+  CATEGORY_KEYS.forEach(k=>{ if(o.items[k]==null) o.items[k] = ''; });
+  if(!Array.isArray(o.addons)) o.addons = [];
+  o.extras = (o.extras||[]).map(e=> typeof e==='string' ? {label:e, amount:0} : {label:(e&&e.label)||'', amount:(e&&parseFloat(e.amount))||0});
+  if(!o.serviceType) o.serviceType = 'Party';
+  if(o.seasonTag==null) o.seasonTag = '';
+  if(!o.paymentStatus) o.paymentStatus = 'unpaid';
+  if(o.paymentMethod==null) o.paymentMethod = '';
+  if(o.cancelled==null) o.cancelled = false;
+  return o;
+}
+// Set to true only when the Settings tab actually changes business name/phone/logo,
+// right before calling saveData() for that change - see saveBizBtn / s_logoInput below.
+// Every other saveData() call (new order, payment toggle, etc.) leaves this false, so
+// it won't accidentally push a stale local business snapshot over a newer one that
+// arrived from another device.
+// businessDirty declared above with localStorage persistence
+function mergeDataSets(remote, local, keepLocalBusiness){
+  const merged = JSON.parse(JSON.stringify(local));
+  if(remote){
+    remote = normalizeFullData(JSON.parse(JSON.stringify(remote)));
+    // Deleted-record tombstones: dono taraf (remote + local) ki "delete ki gayi
+    // id" listein union kar do. Isse agar is device par kisi order/function ko
+    // delete kiya gaya hai, to woh Firestore ke us record se dubara zinda nahi
+    // hoga jo abhi tak wahan pada hai - aur agar doosre device ne delete kiya
+    // tha to woh bhi is device par turant hat jaayega.
+    const delOrderSet = new Set([...(remote.deletedOrderIds||[]), ...(merged.deletedOrderIds||[])].map(String));
+    const delFuncSet = new Set([...(remote.deletedFunctionIds||[]), ...(merged.deletedFunctionIds||[])].map(String));
+    // Union by id. Same-id conflict: newer updatedAt/createdAt wins.
+    // Equal timestamps → local wins (this device is actively saving).
+    // Pehle hamesha local jeetta tha — stale offline Unpaid cloud ke Paid ko
+    // reconnect par wapas likh sakta tha. Ab time se decide.
+    function recTimeMerge(x){ return String((x && (x.updatedAt || x.createdAt)) || ''); }
+    function pickNewer(a, b){
+      // a = remote candidate already in map, b = local incoming
+      if(!a) return b;
+      if(!b) return a;
+      const ta = recTimeMerge(a), tb = recTimeMerge(b);
+      if(tb > ta) return b;      // local strictly newer
+      if(ta > tb) return a;      // remote strictly newer
+      return b;                  // tie → local
+    }
+    const orderMap = new Map();
+    (remote.orders||[]).forEach(o=> orderMap.set(String(o.id), o));
+    (merged.orders||[]).forEach(o=>{
+      const id = String(o.id);
+      orderMap.set(id, pickNewer(orderMap.get(id), o));
+    });
+    delOrderSet.forEach(id=> orderMap.delete(id));
+    merged.orders = Array.from(orderMap.values());
+    const funcMap = new Map();
+    (remote.functions||[]).forEach(f=> funcMap.set(String(f.id), f));
+    (merged.functions||[]).forEach(f=>{
+      const id = String(f.id);
+      funcMap.set(id, pickNewer(funcMap.get(id), f));
+    });
+    delFuncSet.forEach(id=> funcMap.delete(id));
+    merged.functions = Array.from(funcMap.values());
+    merged.deletedOrderIds = Array.from(delOrderSet);
+    merged.deletedFunctionIds = Array.from(delFuncSet);
+    // Duplicate number repair: agar do devices offline hote hue kisi ek jaisi
+    // wajah se same orderNo/funcNo assign kar dete hain (rare, lekin possible),
+    // to yahan pakad ke baad wale (createdAt ke hisaab se) ko naya unique
+    // number de do - pehla wala apna number rakhta hai.
+    const maxOrderNo = dedupeNumbers(merged.orders, 'orderNo');
+    const maxFuncNo = dedupeNumbers(merged.functions, 'funcNo');
+    // Counters must never go backwards, and must always be ahead of the
+    // highest order/function number actually present, or numbers can repeat.
+    merged.orderCounter = Math.max(remote.orderCounter||0, merged.orderCounter||0, maxOrderNo);
+    merged.funcCounter = Math.max(remote.funcCounter||0, merged.funcCounter||0, maxFuncNo);
+    // Addon list: union, phir usmein se dono taraf ki "deleted addon" tombstones
+    // hata do - warna kisi doosre device par abhi bhi maujood item ✕ dabane ke
+    // baad bhi sync hokar wapas chipak jaata (yahi bug tha).
+    const delAddonSet = new Set([...(remote.deletedAddons||[]), ...(merged.deletedAddons||[])]);
+    const addonSet = new Set([...(remote.addonOptions||[]), ...(merged.addonOptions||[])]);
+    delAddonSet.forEach(a=> addonSet.delete(a));
+    merged.addonOptions = Array.from(addonSet);
+    merged.deletedAddons = Array.from(delAddonSet);
+    // Festival calendar: union by id, same tarah se, taaki ek device par add ki
+    // gayi festival dusre device ke save se gayab na ho jaaye - aur delete kiya
+    // gaya festival bhi (id tombstone se) turant hamesha ke liye hat jaaye.
+    const delFestSet = new Set([...(remote.deletedFestivalIds||[]), ...(merged.deletedFestivalIds||[])].map(String));
+    const festMap = new Map();
+    (remote.festivals||[]).forEach(fe=> festMap.set(String(fe.id), fe));
+    (merged.festivals||[]).forEach(fe=> festMap.set(String(fe.id), fe));
+    delFestSet.forEach(id=> festMap.delete(id));
+    merged.festivals = Array.from(festMap.values());
+    merged.deletedFestivalIds = Array.from(delFestSet);
+    // Business profile (name/phone/logo) is a single shared object, not a list, so it
+    // can't be "unioned" like orders. Only keep THIS device's local copy when this
+    // save is actually the Settings-tab edit that changed it (keepLocalBusiness=true).
+    // Every other save (new order, payment toggle, etc.) takes remote's business as-is,
+    // so an old local snapshot never overwrites a newer update made from another device.
+    if(!keepLocalBusiness && remote.business){
+      merged.business = remote.business;
+    }
+  }
+  return merged;
+}
+let dataSizeWarningShown = false;
+function checkDataSizeWarning(dataObj){
+  // Firestore document ki limit ~1MB hai. Jaise-jaise orders/functions/logo
+  // jamaa hote jaate hain, document size dheere-dheere badhta hai - agar limit
+  // paar ho gayi to poora sync bina kisi clear reason ke fail hona shuru ho
+  // jaata hai. Isliye pehle se ek baar warning de dete hain taaki owner
+  // Settings > Data Backup se export karke bahut purane/cancelled orders
+  // hata sake, cache/logo ki wajah se sync achanak band na ho.
+  try{
+    const bytes = new Blob([JSON.stringify(dataObj)]).size;
+    if(bytes > 750*1024 && !dataSizeWarningShown){
+      dataSizeWarningShown = true;
+      alert('आपका saved data करीब '+Math.round(bytes/1024)+' KB हो गया है (Firestore की करीब 1 MB/document limit के पास)। कभी भी sync अचानक fail होने लगे तो Menu & Settings > Data Backup से पहले पूरा data export/backup कर लें, फिर बहुत पुराने या Cancelled orders delete कर दें।');
+    }
+  }catch(e){}
+}
+function saveData(){
+  // Always save locally first - instant, works offline, and is the fallback if sync isn't set up.
+  setLocalDataDirty(true);
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
+  }catch(e){
+    console.error(e);
+    alert('इस device पर local save fail हो गया (storage भर सकता है)। Settings > Data Backup से export कर लें, पुराने orders हटाएँ, फिर try करें।');
+  }
+  checkDataSizeWarning(DATA);
+  // Also push to Firestore if logged in, so other devices on the same account see the update.
+  // Uses a transaction that MERGES with whatever is already saved remotely, instead of
+  // blindly overwriting it - this prevents orders made on one device/tab from being
+  // silently wiped out when another device/tab (with older local data) saves next.
+  if(firebaseReady && window.firebaseUser && db){
+    const docRef = db.collection('caterers').doc(window.firebaseUser.uid);
+    const localSnapshot = DATA;
+    const keepLocalBusiness = businessDirty;
+    db.runTransaction(tx=> tx.get(docRef).then(snap=>{
+      const remote = snap.exists ? snap.data() : null;
+      const merged = mergeDataSets(remote, localSnapshot, keepLocalBusiness);
+      tx.set(docRef, merged);
+      return merged;
+    })).then((merged)=>{
+      // Sirf success par hi "dirty" flag clear karo. Agar transaction fail ho jaaye
+      // to flag ko wapas true rehne do, taaki agli save par local business dubara
+      // remote ko sahi tarah se overwrite kare - warna ek failed sync ke baad
+      // purana remote business permanently jeet sakta tha.
+      if(keepLocalBusiness) setBusinessDirty(false);
+      setLocalDataDirty(false);
+      DATA = normalizeFullData(merged);
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(e){}
+      refreshAllViews();
+      setSyncStatus(true);
+    }).catch(err=>{
+      console.error(err); setSyncStatus(false);
+      // Keep localDataDirty true so next snapshot/online merge keeps local edits
+      setLocalDataDirty(true);
+      if(keepLocalBusiness) setBusinessDirty(true);
+    });
+  }
+}
+
+// IST/local date, NOT toISOString().slice(0,10) - that gives UTC date, which
+// rolls over to "tomorrow" a few hours early in India (UTC+5:30), causing
+// new orders/functions to silently get the wrong default date at night.
+function localDateStr(d){
+  d = d || new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function freshOrder(){
+  const items = {};
+  CATEGORY_KEYS.forEach(k=> items[k]='');
+  return {
+    id:null, orderNo:null, date:localDateStr(), time:'',
+    guests:'', event:'Lunch', eventOther:'', seasonTag:'', serviceType:'Party',
+    jain:false, noOnionGarlic:false, spice:'Medium',
+    items:items, addons:[],
+    extras:[], rate:'', advance:'', total:0,
+    paymentStatus:'unpaid', paymentMethod:'', cancelled:false,
+    customerName:'', customerPhone:'', customerAddress:'',
+    createdAt:null
+  };
+}
+function freshMeal(){
+  return { key:'m'+Date.now()+Math.random().toString(36).slice(2,7), type:'Breakfast', typeOther:'', time:'', guests:'', rate:'', items:'' };
+}
+function freshFunction(){
+  return {
+    id:null, funcNo:null, title:'', date:localDateStr(),
+    customerName:'', customerPhone:'', customerAddress:'',
+    meals:[freshMeal()], advance:'', paymentStatus:'unpaid', paymentMethod:'', cancelled:false, total:0, createdAt:null
+  };
+}
+
+/* ---------------- TABS ---------------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='history') renderHistory();
+    if(btn.dataset.tab==='settings') renderSettings();
+    if(btn.dataset.tab==='multimeal') renderFunctionsList();
+  });
+});
+
+/* ---------------- HEADER / BUSINESS ---------------- */
+function renderHeader(){
+  document.getElementById('bizNameDisplay').textContent = DATA.business.name || 'Omkar Caterers';
+  const box = document.getElementById('logoBox');
+  if(DATA.business.logo){
+    box.innerHTML = '<img src="'+DATA.business.logo+'" alt="logo">';
+  } else {
+    const initials = (DATA.business.name||'OC').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    box.innerHTML = '<span class="initials">'+initials+'</span>';
+  }
+  const phoneEl = document.getElementById('bizPhoneDisplay');
+  if(DATA.business.phone){
+    phoneEl.textContent = 'Mob. No. ' + DATA.business.phone;
+    phoneEl.style.display = 'block';
+  } else {
+    phoneEl.style.display = 'none';
+  }
+}
+
+/* ================= SINGLE ORDER (New Order tab) ================= */
+document.querySelectorAll('input[name=event]').forEach(r=>{
+  r.addEventListener('change', ()=>{
+    currentOrder.event = r.value;
+    document.getElementById('otherEventRow').style.display = (r.value==='Other') ? 'flex':'none';
+  });
+});
+document.getElementById('f_eventOther').addEventListener('input', e=>{ currentOrder.eventOther = e.target.value; });
+document.getElementById('f_seasonTag').addEventListener('input', e=>{ currentOrder.seasonTag = e.target.value; });
+document.querySelectorAll('input[name=serviceType]').forEach(r=>{
+  r.addEventListener('change', ()=>{ currentOrder.serviceType = r.value; });
+});
+document.getElementById('f_time').addEventListener('input', e=>{ currentOrder.time = e.target.value; });
+document.getElementById('f_jain').addEventListener('change', e=>{ currentOrder.jain = e.target.checked; });
+document.getElementById('f_noOnionGarlic').addEventListener('change', e=>{ currentOrder.noOnionGarlic = e.target.checked; });
+document.querySelectorAll('input[name=spice]').forEach(r=>{
+  r.addEventListener('change', ()=>{ currentOrder.spice = r.value; });
+});
+document.getElementById('f_date').addEventListener('input', e=>{ currentOrder.date = e.target.value; });
+document.getElementById('f_guests').addEventListener('input', e=>{ currentOrder.guests = e.target.value; updateTotal(); });
+document.getElementById('f_rate').addEventListener('input', e=>{ currentOrder.rate = e.target.value; updateTotal(); });
+document.getElementById('f_advance').addEventListener('input', e=>{ currentOrder.advance = e.target.value; updateTotal(); });
+document.getElementById('f_custName').addEventListener('input', e=>{ currentOrder.customerName = e.target.value; checkHistoryMatch(); });
+document.getElementById('f_custPhone').addEventListener('input', e=>{ currentOrder.customerPhone = e.target.value; checkHistoryMatch(); });
+document.getElementById('f_custAddress').addEventListener('input', e=>{ currentOrder.customerAddress = e.target.value; });
+CATEGORY_KEYS.forEach(k=>{
+  document.getElementById('txt_'+k).addEventListener('input', e=>{ currentOrder.items[k] = e.target.value; });
+});
+
+function extraChargesSum(extras){
+  return (extras||[]).reduce((sum,e)=> sum + (parseFloat(e && e.amount)||0), 0);
+}
+function updateTotal(){
+  const g = parseFloat(currentOrder.guests)||0;
+  const r = parseFloat(currentOrder.rate)||0;
+  const adv = parseFloat(currentOrder.advance)||0;
+  const platesTotal = g*r;
+  const extraCharges = extraChargesSum(currentOrder.extras);
+  currentOrder.total = platesTotal + extraCharges;
+  const balance = currentOrder.total - adv;
+  document.getElementById('platesTotalDisplay').textContent = '₹ ' + platesTotal.toLocaleString('en-IN');
+  document.getElementById('extraChargesDisplay').textContent = '₹ ' + extraCharges.toLocaleString('en-IN');
+  document.getElementById('totalDisplay').textContent = '₹ ' + currentOrder.total.toLocaleString('en-IN');
+  document.getElementById('advanceDisplay').textContent = '₹ ' + adv.toLocaleString('en-IN');
+  document.getElementById('balanceDisplay').textContent = '₹ ' + balance.toLocaleString('en-IN');
+}
+function fillItemTextareas(){
+  CATEGORY_KEYS.forEach(k=>{
+    document.getElementById('txt_'+k).value = currentOrder.items[k] || '';
+  });
+}
+function renderAddonOptions(){
+  const box = document.getElementById('addonsOptions');
+  box.innerHTML = '';
+  (DATA.addonOptions||[]).forEach(name=>{
+    const chip = document.createElement('div');
+    chip.className = 'opt-chip' + (currentOrder.addons.includes(name) ? ' selected':'');
+    chip.textContent = name;
+    chip.addEventListener('click', ()=>{
+      if(currentOrder.addons.includes(name)){
+        currentOrder.addons = currentOrder.addons.filter(x=>x!==name);
+      } else {
+        currentOrder.addons.push(name);
+      }
+      renderAddonOptions();
+    });
+    box.appendChild(chip);
+  });
+  if((DATA.addonOptions||[]).length===0){
+    box.innerHTML = '<div class="empty-note">Settings से extra items add करें।</div>';
+  }
+}
+document.getElementById('addExtraBtn').addEventListener('click', ()=>{
+  const inp = document.getElementById('f_extraInput');
+  const amtInp = document.getElementById('f_extraAmount');
+  const val = inp.value.trim();
+  const amt = parseFloat(amtInp.value)||0;
+  if(val){
+    currentOrder.extras.push({label:val, amount:amt});
+    inp.value=''; amtInp.value='';
+    renderExtraChips(); updateTotal();
+  }
+});
+document.getElementById('f_extraInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); document.getElementById('addExtraBtn').click(); }
+});
+function formatExtra(ex){
+  const amt = parseFloat(ex && ex.amount)||0;
+  return (ex && ex.label ? ex.label : '') + (amt>0 ? ' — ₹'+amt.toLocaleString('en-IN') : '');
+}
+function renderExtraChips(){
+  const box = document.getElementById('extraChips');
+  box.innerHTML = '';
+  currentOrder.extras.forEach((ex,i)=>{
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = '<span>'+escapeHtml(formatExtra(ex))+'</span><span class="x" data-i="'+i+'">×</span>';
+    chip.querySelector('.x').addEventListener('click', ()=>{ currentOrder.extras.splice(i,1); renderExtraChips(); updateTotal(); });
+    box.appendChild(chip);
+  });
+}
+function normalizePhoneDigits(p){
+  return (p||'').replace(/\D/g,'');
+}
+function checkHistoryMatch(){
+  const name = currentOrder.customerName.trim().toLowerCase();
+  const phone = currentOrder.customerPhone.trim();
+  const phoneDigits = normalizePhoneDigits(phone).slice(-10);
+  const panel = document.getElementById('matchPanel');
+  if(name.length<3 && phoneDigits.length<4){ panel.style.display='none'; return; }
+  function rowMatch(custName, custPhone){
+    const nMatch = name.length>=3 && custName && custName.toLowerCase().includes(name);
+    const oDigits = normalizePhoneDigits(custPhone).slice(-10);
+    const pMatch = phoneDigits.length>=4 && oDigits && (oDigits.includes(phoneDigits) || phoneDigits.includes(oDigits));
+    return nMatch || pMatch;
+  }
+  const orderMatches = (DATA.orders||[]).filter(o=> rowMatch(o.customerName, o.customerPhone) && o.orderNo!==currentOrder.orderNo)
+    .map(o=> Object.assign({_kind:'order'}, o));
+  const funcMatches = (DATA.functions||[]).filter(f=> rowMatch(f.customerName, f.customerPhone))
+    .map(f=> Object.assign({_kind:'function'}, f));
+  const matches = orderMatches.concat(funcMatches)
+    .sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||'')).slice(0,3);
+  if(matches.length===0){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  panel.innerHTML = '<strong>पुराना रिकॉर्ड मिला:</strong>' + matches.map(m=>{
+    const isFn = m._kind==='function';
+    let summary;
+    if(isFn){
+      summary = escapeHtml(m.customerName||'')+' — '+m.date+' — Function #'+String(m.funcNo||0).padStart(6,'0')+' — ₹'+(m.total||0).toLocaleString('en-IN');
+    } else {
+      const mEventLabel = m.event==='Other' ? (m.eventOther||'Other') : m.event;
+      summary = escapeHtml(m.customerName||'')+' — '+m.date+' — '+m.guests+' guests — ₹'+m.rate+'/plate ('+escapeHtml(mEventLabel||'')+')';
+    }
+    return '<div class="match-entry"><span>'+summary+'</span>'
+      +'<span style="display:flex;gap:6px;flex-wrap:wrap;">'
+      +(isFn?'':'<button type="button" class="btn-small view-bill-btn" data-id="'+m.id+'" style="background:#fff;border:1px solid var(--maroon);color:var(--maroon);">Bill देखें</button>')
+      +(isFn?'':'<button type="button" class="btn-small use-rate-btn" data-id="'+m.id+'">यही Rate Use करें</button>')
+      +(isFn?'<span style="font-size:11px;color:#8A7A5C;">(Multi-Meal)</span>':'')
+      +'</span></div>';
+  }).join('');
+  panel.querySelectorAll('.view-bill-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const ord = DATA.orders.find(o=>String(o.id)===String(b.dataset.id));
+      if(ord) openBillView(ord);
+    });
+  });
+  panel.querySelectorAll('.use-rate-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const ord = DATA.orders.find(o=>String(o.id)===String(b.dataset.id));
+      if(ord){
+        currentOrder.rate = ord.rate;
+        document.getElementById('f_rate').value = ord.rate;
+        if(!currentOrder.customerAddress && ord.customerAddress){
+          currentOrder.customerAddress = ord.customerAddress;
+          document.getElementById('f_custAddress').value = ord.customerAddress;
+        }
+        // Guest count guests har order mein alag ho sakta hai, isliye sirf tab bharo
+        // jab abhi field khali ho - taaki galti se purana wrong number na aa jaaye,
+        // lekin Save karte waqt bekaar ka "Guest Count सही डालें" alert bhi na aaye.
+        if(!currentOrder.guests){
+          currentOrder.guests = ord.guests;
+          document.getElementById('f_guests').value = ord.guests;
+        }
+        updateTotal();
+      }
+    });
+  });
+}
+// Payment method modal ek hi baar page load par listeners le leta hai (neeche
+// dekhein) - openPaymentMethodPicker sirf ek "abhi ka callback" variable set
+// karta hai. Isse buttons cloning/re-binding ki zaroorat nahi rehti, jo pehle
+// dusri baar modal khulne par kabhi-kabhi kaam karna band kar deta tha.
+let _paymentPickerCallback = null;
+function openPaymentMethodPicker(onSelect){
+  _paymentPickerCallback = onSelect;
+  document.getElementById('payMethodModal').style.display = 'flex';
+  document.getElementById('payMethodChoices').style.display = 'block';
+  document.getElementById('payMethodSplitForm').style.display = 'none';
+  document.getElementById('payMethodCashAmt').value = '';
+  document.getElementById('payMethodOnlineAmt').value = '';
+}
+function closePaymentPicker(){
+  document.getElementById('payMethodModal').style.display = 'none';
+  document.getElementById('payMethodChoices').style.display = 'block';
+  document.getElementById('payMethodSplitForm').style.display = 'none';
+  _paymentPickerCallback = null;
+}
+document.querySelectorAll('.pay-method-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const method = btn.dataset.method;
+    if(method==='Other'){
+      // Cash + Online dono se mila hai - split amount pucho, seedhe confirm mat karo
+      document.getElementById('payMethodChoices').style.display = 'none';
+      document.getElementById('payMethodSplitForm').style.display = 'block';
+      document.getElementById('payMethodCashAmt').focus();
+    } else {
+      const cb = _paymentPickerCallback;
+      closePaymentPicker();
+      if(cb) cb(method);
+    }
+  });
+});
+document.getElementById('payMethodSplitConfirm').addEventListener('click', ()=>{
+  const cashAmt = parseFloat(document.getElementById('payMethodCashAmt').value)||0;
+  const onlineAmt = parseFloat(document.getElementById('payMethodOnlineAmt').value)||0;
+  if(cashAmt<=0 && onlineAmt<=0){ alert('कृपया Cash या Online में से कम से कम एक amount डालें।'); return; }
+  const mixSum = cashAmt + onlineAmt;
+  if(mixSum > 0 && mixSum < 100){
+    if(!confirm('Cash+Online मिलाकर सिर्फ ₹'+mixSum.toLocaleString('en-IN')+' है। क्या यह सही है?')) return;
+  }
+  const method = 'Other (Cash ₹'+cashAmt.toLocaleString('en-IN')+' + Online ₹'+onlineAmt.toLocaleString('en-IN')+')';
+  const cb = _paymentPickerCallback;
+  closePaymentPicker();
+  if(cb) cb(method);
+});
+document.getElementById('payMethodCancel').addEventListener('click', closePaymentPicker);
+document.getElementById('payMethodModal').addEventListener('click', (e)=>{
+  if(e.target.id==='payMethodModal') closePaymentPicker();
+});
+function flagFieldError(fieldId, message){
+  const el = document.getElementById(fieldId);
+  if(el){
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.style.borderColor = 'var(--red)';
+    el.focus();
+    setTimeout(()=>{ el.style.borderColor=''; }, 2500);
+  }
+  alert(message);
+}
+document.getElementById('saveOrderBtn').addEventListener('click', ()=>{
+  if(!currentOrder.date){ flagFieldError('f_date','कृपया Date डालें।'); return; }
+  if(!currentOrder.customerName.trim()){ flagFieldError('f_custName','कृपया Customer का नाम डालें।'); return; }
+  if(!currentOrder.guests || parseFloat(currentOrder.guests)<=0){ flagFieldError('f_guests','कृपया Guest Count सही डालें।'); return; }
+  if(currentOrder.rate===''){ flagFieldError('f_rate','कृपया Rate per Plate डालें।'); return; }
+  updateTotal();
+  const existingIdx = currentOrder.id ? DATA.orders.findIndex(o=>o.id===currentOrder.id) : -1;
+  if(currentOrder.id && existingIdx>-1){
+    currentOrder.updatedAt = new Date().toISOString();
+    DATA.orders[existingIdx] = JSON.parse(JSON.stringify(currentOrder)); saveData(); renderHistory(); alert('Order #'+currentOrder.orderNo+' update हो गया।');
+  } else {
+    if(currentOrder.id){
+      // Yeh record kisi doosre device se delete ho chuka hai (multi-device sync mismatch).
+      // Data khona nahi chahiye - isliye clearly bata do aur naye order ki tarah save karo,
+      // chup-chaap fail mat hone do.
+      alert('यह Order किसी दूसरे device से delete हो चुका था, इसलिए इसे नए Order की तरह वापस save किया जा रहा है।');
+    }
+    DATA.orderCounter += 1;
+    currentOrder.orderNo = DATA.orderCounter;
+    currentOrder.id = makeId('ord');
+    currentOrder.updatedAt = new Date().toISOString();
+    currentOrder.createdAt = new Date().toISOString();
+    DATA.orders.push(JSON.parse(JSON.stringify(currentOrder)));
+    saveData();
+    renderHistory();
+    alert('Order #'+currentOrder.orderNo+' save हो गया।');
+  }
+  resetOrderForm();
+});
+document.getElementById('resetOrderBtn').addEventListener('click', ()=>{
+  if(confirm('फॉर्म clear करें?')) resetOrderForm();
+});
+function resetOrderForm(){
+  currentOrder = freshOrder();
+  document.getElementById('f_date').value = currentOrder.date;
+  document.getElementById('f_time').value = '';
+  document.getElementById('f_guests').value = '';
+  document.getElementById('f_rate').value = '';
+  document.getElementById('f_advance').value = '';
+  document.getElementById('f_custName').value = '';
+  document.getElementById('f_custPhone').value = '';
+  document.getElementById('f_custAddress').value = '';
+  document.getElementById('f_eventOther').value = '';
+  document.getElementById('f_seasonTag').value = '';
+  document.querySelector('input[name=event][value=Lunch]').checked = true;
+  document.querySelector('input[name=serviceType][value=Party]').checked = true;
+  document.getElementById('otherEventRow').style.display = 'none';
+  document.getElementById('f_jain').checked = false;
+  document.getElementById('f_noOnionGarlic').checked = false;
+  document.querySelector('input[name=spice][value=Medium]').checked = true;
+  document.getElementById('matchPanel').style.display='none';
+  const extraAmtEl = document.getElementById('f_extraAmount'); if(extraAmtEl) extraAmtEl.value='';
+  fillItemTextareas();
+  renderAddonOptions();
+  renderExtraChips();
+  updateOrderNoLabel();
+  updateTotal();
+}
+function updateOrderNoLabel(){
+  const label = currentOrder.orderNo ? currentOrder.orderNo : (DATA.orderCounter+1);
+  document.getElementById('orderNoLabel').textContent = (currentOrder.id ? 'Editing No. ':'No. ') + String(label).padStart(6,'0');
+}
+
+function buildOrderPrintHtml(order){
+  const itemsHtml = CATEGORY_KEYS.map(cat=>{
+    const text = (order.items[cat]||'').trim();
+    if(!text) return '';
+    return '<div class="p-section">'+CATEGORY_LABELS[cat]+'</div><div class="p-body">'+escapeHtml(text)+'</div>';
+  }).join('');
+  const formalities = [];
+  if(order.jain) formalities.push('Full Jain');
+  if(order.noOnionGarlic) formalities.push('No Onion-Garlic');
+  formalities.push('Spice: '+order.spice);
+  const extras = order.extras && order.extras.length ? extrasToText(order.extras) : '—';
+  const addonsText = order.addons && order.addons.length ? order.addons.join(', ') : '—';
+  const eventLabel = order.event==='Other' ? (order.eventOther||'Other') : order.event;
+  const adv = parseFloat(order.advance)||0;
+  const balance = (order.total||0) - adv;
+
+  return ''
+   + (order.cancelled ? '<div style="text-align:center;border:3px solid #C0272D;color:#C0272D;font-weight:700;font-size:16px;padding:6px;margin-bottom:10px;letter-spacing:2px;">❌ CANCELLED ORDER ❌</div>' : '')
+   +'<div class="p-shree">|| Shree ||</div>'
+   +'<div class="p-header">'+escapeHtml(DATA.business.name||'Omkar Caterers')+'</div>'
+   + (DATA.business.phone ? '<div class="p-phone">Mob. No. '+escapeHtml(DATA.business.phone)+'</div>' : '')
+   +'<div class="p-sub">Order No. '+String(order.orderNo||(DATA.orderCounter+1)).padStart(6,'0')+'</div>'
+   +'<div class="p-inforow">'
+     +'<span><strong>Date:</strong> '+order.date+(order.time? ' · '+escapeHtml(order.time):'')+'</span>'
+     +'<span><strong>Guests:</strong> '+order.guests+'</span>'
+     +'<span><strong>Event:</strong> '+escapeHtml(eventLabel)+' ('+escapeHtml(order.serviceType||'Party')+')</span>'
+     +'<span><strong>Formalities:</strong> '+formalities.join(' · ')+'</span>'
+   +'</div>'
+   + itemsHtml
+   +'<div class="p-section">Extra (Add-ons)</div><div class="p-body">'+escapeHtml(addonsText)+'</div>'
+   +'<div class="p-section">Extra Requirement</div><div class="p-body">'+escapeHtml(extras)+'</div>'
+   +'<div class="p-section">Customer</div>'
+   +'<div class="p-inforow">'
+     +'<span><strong>Name:</strong> '+escapeHtml(order.customerName)+'</span>'
+     +'<span><strong>Phone:</strong> '+escapeHtml(order.customerPhone)+'</span>'
+   +'</div>'
+   +'<div class="p-line p-address"><span><strong>Address:</strong></span><span>'+escapeHtml(order.customerAddress)+'</span></div>'
+   +'<div class="p-totals-block">'
+   +'<div class="p-line"><span>Plates (Guests × Rate)</span><span>₹'+((parseFloat(order.rate)||0)*(parseFloat(order.guests)||0)).toLocaleString('en-IN')+'</span></div>'
+   +'<div class="p-line"><span>Extra Charges</span><span>₹'+extrasAmountSum(order.extras).toLocaleString('en-IN')+'</span></div>'
+   +'<div class="p-total">Grand Total: ₹'+ (order.total||0).toLocaleString('en-IN') +'</div>'
+   +'<div class="p-line"><span>Advance</span><span>₹'+adv.toLocaleString('en-IN')+'</span></div>'
+   +'<div class="p-line"><span>Balance Due</span><span>₹'+balance.toLocaleString('en-IN')+'</span></div>'
+   + (order.paymentStatus==='paid' ? '<div class="p-line-amount p-line"><span>Payment</span><span>'+escapeHtml(order.paymentMethod||'Paid')+'</span></div>' : '')
+   +'</div>';
+}
+document.getElementById('printOrderBtn').addEventListener('click', ()=>{
+  updateTotal();
+  printHtmlDocument(buildOrderPrintHtml(currentOrder), 'Order Slip');
+});
+
+/* ================= WHATSAPP SHARE ================= */
+function formatWaPhone(phone){
+  let digits = String(phone||'').replace(/\D/g,'');
+  if(!digits) return '';
+  if(digits.length===10) digits = '91'+digits;
+  else if(digits.length===11 && digits.startsWith('0')) digits = '91'+digits.slice(1);
+  return digits;
+}
+function buildOrderWhatsAppText(order){
+  const eventLabel = order.event==='Other' ? (order.eventOther||'Other') : order.event;
+  const formalities = [];
+  if(order.jain) formalities.push('Full Jain');
+  if(order.noOnionGarlic) formalities.push('No Onion-Garlic');
+  formalities.push('Spice: '+order.spice);
+  const adv = parseFloat(order.advance)||0;
+  const balance = (order.total||0) - adv;
+  let lines = [];
+  if(order.cancelled) lines.push('🚫🚫🚫 *YEH ORDER CANCELLED HAI* 🚫🚫🚫');
+  lines.push('*'+(DATA.business.name||'Omkar Caterers')+'*');
+  if(DATA.business.phone) lines.push('Mob. No. '+DATA.business.phone);
+  lines.push('_Digital Menu — Order No. '+String(order.orderNo||(DATA.orderCounter+1)).padStart(6,'0')+'_');
+  lines.push('');
+  lines.push('📅 Date: '+order.date+(order.time?' · '+order.time:''));
+  lines.push('👥 Guests: '+order.guests);
+  lines.push('🍽️ Event: '+eventLabel+' ('+(order.serviceType||'Party')+')');
+  lines.push('🙏 '+formalities.join(' · '));
+  CATEGORY_KEYS.forEach(cat=>{
+    const text = (order.items[cat]||'').trim();
+    if(text) lines.push('\n*'+CATEGORY_LABELS[cat]+':*\n'+text);
+  });
+  if(order.addons && order.addons.length) lines.push('\n*Extra:* '+order.addons.join(', '));
+  if(order.extras && order.extras.length) lines.push('*Extra Requirement:* '+extrasToText(order.extras));
+  lines.push('\n💰 Plates: ₹'+((parseFloat(order.rate)||0)*(parseFloat(order.guests)||0)).toLocaleString('en-IN')+' + Extra Charges: ₹'+extrasAmountSum(order.extras).toLocaleString('en-IN'));
+  lines.push('Grand Total: ₹'+(order.total||0).toLocaleString('en-IN'));
+  lines.push('Advance: ₹'+adv.toLocaleString('en-IN')+' | Balance: ₹'+balance.toLocaleString('en-IN'));
+  if(order.paymentStatus==='paid') lines.push('✅ Payment: '+(order.paymentMethod||'Paid'));
+  lines.push('\n✅ 100% Pure Vegetarian');
+  return lines.join('\n');
+}
+function fmtRs(n){ return 'Rs. ' + (parseFloat(n)||0).toLocaleString('en-IN'); }
+function buildOrderPdfDoc(order){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p','pt','a4');
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginX = 24;
+  let y = 86;
+  const maroon=[122,29,46], maroonDark=[74,15,28], gold=[200,155,60], cream=[251,243,227], ink=[43,27,18], veg=[30,123,52], paper=[251,246,234];
+
+  function ensureSpace(h){ if(y + h > pageH - 30){ doc.addPage('a4','p'); y = 24; } }
+  function sectionTitle(text){
+    ensureSpace(20);
+    doc.setDrawColor.apply(doc,gold); doc.setLineWidth(1);
+    doc.line(marginX, y+13, pageW-marginX, y+13);
+    doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.setTextColor.apply(doc,maroonDark);
+    doc.text(text, marginX, y+10);
+    y += 21;
+  }
+  function bodyText(text){
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor.apply(doc,ink);
+    const lines = doc.splitTextToSize(String(text||'—'), pageW-2*marginX-16);
+    ensureSpace(lines.length*14+10);
+    doc.setFillColor.apply(doc,paper);
+    doc.rect(marginX, y-3, pageW-2*marginX, lines.length*14+8, 'F');
+    doc.setDrawColor.apply(doc,gold); doc.setLineWidth(2);
+    doc.line(marginX+1, y-3, marginX+1, y+lines.length*14+5);
+    doc.text(lines, marginX+9, y+8);
+    y += lines.length*14+13;
+  }
+  function lineRow(label, value){
+    ensureSpace(15);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(90,80,65);
+    doc.text(String(label), marginX, y);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor.apply(doc,ink);
+    doc.text(String(value||'—'), pageW-marginX, y, {align:'right'});
+    y += 15;
+  }
+
+  // header band
+  doc.setFillColor.apply(doc,maroonDark);
+  doc.rect(0,0,pageW,74,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor.apply(doc,gold);
+  doc.text('|| Shree ||', pageW/2, 14, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor.apply(doc,cream);
+  doc.text(DATA.business.name||'Omkar Caterers', marginX, 33);
+  if(DATA.business.phone){
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+    doc.text('Mob. No. '+DATA.business.phone, marginX, 47);
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor.apply(doc,gold);
+  doc.text('DIGITAL MENU  —  ORDER NO. '+String(order.orderNo||(DATA.orderCounter+1)).padStart(6,'0'), marginX, 63);
+
+  const eventLabel = order.event==='Other' ? (order.eventOther||'Other') : order.event;
+  lineRow('Date', order.date+(order.time?'  ·  '+order.time:''));
+  lineRow('Guests', order.guests);
+  lineRow('Event', eventLabel+' ('+(order.serviceType||'Party')+')');
+  const formalities=[];
+  if(order.jain) formalities.push('Full Jain');
+  if(order.noOnionGarlic) formalities.push('No Onion-Garlic');
+  formalities.push('Spice: '+order.spice);
+  lineRow('Formalities', formalities.join('  ·  '));
+  y += 6;
+
+  CATEGORY_KEYS.forEach(cat=>{
+    const text = (order.items[cat]||'').trim();
+    if(text){ sectionTitle(CATEGORY_LABELS[cat]); bodyText(text); }
+  });
+  const addonsText = order.addons && order.addons.length ? order.addons.join(', ') : '—';
+  sectionTitle('Extra (Add-ons)'); bodyText(addonsText);
+  const extrasText = order.extras && order.extras.length ? extrasToText(order.extras) : '—';
+  sectionTitle('Extra Requirement'); bodyText(extrasText);
+
+  sectionTitle('Customer');
+  lineRow('Name', order.customerName);
+  lineRow('Phone', order.customerPhone);
+  lineRow('Address', order.customerAddress);
+  y += 4;
+
+  const platesTotal = (parseFloat(order.rate)||0)*(parseFloat(order.guests)||0);
+  const extraCharges = extrasAmountSum(order.extras);
+  const adv = parseFloat(order.advance)||0;
+  const balance = (order.total||0) - adv;
+  const isPaid = order.paymentStatus==='paid';
+  const boxH = isPaid ? 104 : 88;
+  ensureSpace(boxH+8);
+  doc.setFillColor.apply(doc,maroon);
+  doc.roundedRect(marginX, y, pageW-2*marginX, boxH, 5, 5, 'F');
+  let ty = y+18;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor.apply(doc,cream);
+  doc.text('Plates (Guests x Rate)', marginX+11, ty); doc.text(fmtRs(platesTotal), pageW-marginX-11, ty, {align:'right'});
+  ty += 15;
+  doc.text('Extra Charges', marginX+11, ty); doc.text(fmtRs(extraCharges), pageW-marginX-11, ty, {align:'right'});
+  ty += 19;
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor.apply(doc,gold);
+  doc.text('Grand Total', marginX+11, ty); doc.text(fmtRs(order.total), pageW-marginX-11, ty, {align:'right'});
+  ty += 17;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor.apply(doc,cream);
+  doc.text('Advance', marginX+11, ty); doc.text(fmtRs(adv), pageW-marginX-11, ty, {align:'right'});
+  ty += 15;
+  doc.text('Balance Due', marginX+11, ty); doc.text(fmtRs(balance), pageW-marginX-11, ty, {align:'right'});
+  if(isPaid){
+    ty += 17;
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor.apply(doc,gold);
+    doc.text('Payment: '+(order.paymentMethod||'Paid'), marginX+11, ty);
+  }
+  y += boxH+12;
+
+  ensureSpace(24);
+  const badgeText = '100% PURE VEGETARIAN';
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
+  const tw = doc.getTextWidth(badgeText)+22;
+  doc.setDrawColor.apply(doc,veg); doc.setFillColor(233,247,239); doc.setLineWidth(1);
+  doc.roundedRect(pageW-marginX-tw, y, tw, 20, 9, 9, 'FD');
+  doc.setTextColor.apply(doc,veg);
+  doc.text(badgeText, pageW-marginX-tw+11, y+14);
+  y += 24;
+
+  if(order.cancelled){
+    // Har page par ek halka diagonal "CANCELLED" watermark laga do, taaki PDF
+    // print/forward hone par bhi galti se prepare na ho jaaye.
+    const totalPages = doc.internal.getNumberOfPages();
+    for(let p=1; p<=totalPages; p++){
+      doc.setPage(p);
+      doc.setFont('helvetica','bold'); doc.setFontSize(60);
+      doc.setTextColor(192,39,45);
+      if(doc.saveGraphicsState && doc.setGState && doc.GState){ doc.saveGraphicsState(); doc.setGState(new doc.GState({opacity:0.28})); }
+      doc.text('CANCELLED', pageW/2, pageH/2, {align:'center', angle:35});
+      if(doc.restoreGraphicsState){ doc.restoreGraphicsState(); }
+    }
+  } else if(order.paymentStatus==='paid'){
+    // Cancelled jaisa hi bada diagonal watermark, lekin green - customer ko
+    // PDF/WhatsApp mein saaf dikhna chahiye ki payment ho chuka hai. Yeh sirf
+    // PDF mein aata hai, app ke andar History card mein wahi chhota "PAID"
+    // pill pehle jaisa hi rehta hai (owner ke liye).
+    const totalPages = doc.internal.getNumberOfPages();
+    for(let p=1; p<=totalPages; p++){
+      doc.setPage(p);
+      doc.setFont('helvetica','bold'); doc.setFontSize(60);
+      doc.setTextColor(18,140,74);
+      if(doc.saveGraphicsState && doc.setGState && doc.GState){ doc.saveGraphicsState(); doc.setGState(new doc.GState({opacity:0.28})); }
+      doc.text('PAID', pageW/2, pageH/2, {align:'center', angle:35});
+      if(doc.restoreGraphicsState){ doc.restoreGraphicsState(); }
+    }
+  }
+
+  return doc;
+}
+function generatePdfBlob(order){
+  return new Promise((resolve, reject)=>{
+    if(!window.jspdf){ reject(new Error('PDF library load nahi hui - internet check karein')); return; }
+    try{
+      const doc = buildOrderPdfDoc(order);
+      resolve(doc.output('blob'));
+    }catch(err){ reject(err); }
+  });
+}
+async function shareOrderPdfOnWhatsApp(order){
+  const btn = document.getElementById('waOrderBtn');
+  const originalLabel = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'PDF बन रहा है...'; }
+  try{
+    const blob = await generatePdfBlob(order);
+    const fileName = 'Order-'+String(order.orderNo||'draft').padStart(6,'0')+'.pdf';
+    const file = new File([blob], fileName, {type:'application/pdf'});
+
+    // Share sheet PDF ko seedha WhatsApp ko de deta hai - device ke
+    // Downloads/storage mein file save nahi hoti. WhatsApp apne aap kisi
+    // number ko nahi chun sakta (yeh koi bhi website allow nahi kar sakti),
+    // isliye chat/contact WhatsApp ke andar khud choose karna padega -
+    // agar number contact mein save hai to search karke turant mil jaayega.
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({ files:[file], title: DATA.business.name||'Omkar Caterers', text:'Aapka digital menu' });
+    } else {
+      // Fallback: is device par file-share support nahi hai, isliye
+      // download karke manually attach karna padega.
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = fileName; a.click();
+      URL.revokeObjectURL(url);
+      alert('Is device par seedha WhatsApp share support nahi hai, isliye PDF download kar di hai. WhatsApp kholkar khud attach kar dein.');
+      const digits = formatWaPhone(order.customerPhone);
+      if(digits) window.open('https://wa.me/' + digits, '_blank');
+    }
+  }catch(err){
+    // User ne share sheet mein khud "Cancel" dabaya - yeh koi real error nahi hai,
+    // PDF sahi se ban chuki thi. Isliye AbortError/NotAllowedError ko chup-chaap ignore karo.
+    if(err && (err.name==='AbortError' || err.name==='NotAllowedError')){
+      // silently ignore - user cancelled the share sheet
+    } else {
+      console.error(err);
+      alert('PDF banane mein dikkat aayi. Page reload karke dobara try karein.');
+    }
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel || 'WhatsApp पर PDF भेजें'; }
+  }
+}
+document.getElementById('waOrderBtn').addEventListener('click', ()=>{
+  updateTotal();
+  shareOrderPdfOnWhatsApp(currentOrder);
+});
+
+/* ================= HISTORY TAB ================= */
+document.getElementById('historySearch').addEventListener('input', ()=>{
+  document.getElementById('historyDateFilter').value=''; renderHistory();
+});
+document.getElementById('historyDateFilter').addEventListener('input', ()=>{
+  document.getElementById('historySearch').value=''; renderHistory();
+});
+document.getElementById('clearHistoryFilter').addEventListener('click', ()=>{
+  document.getElementById('historySearch').value=''; document.getElementById('historyDateFilter').value=''; renderHistory();
+});
+document.querySelectorAll('#paymentFilterRow [data-pf]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#paymentFilterRow [data-pf]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    paymentFilter = btn.dataset.pf;
+    renderHistory();
+  });
+});
+document.querySelectorAll('#paymentFilterRow [data-sf]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#paymentFilterRow [data-sf]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    serviceFilter = btn.dataset.sf;
+    renderHistory();
+  });
+});
+document.getElementById('eventSearchToggleBtn').addEventListener('click', ()=>{
+  const panel = document.getElementById('eventSearchPanel');
+  const opening = panel.style.display==='none';
+  panel.style.display = opening ? 'block' : 'none';
+  if(opening) document.getElementById('eventSearchInput').focus();
+});
+document.getElementById('eventSearchInput').addEventListener('input', renderEventSearch);
+document.getElementById('eventSearchClear').addEventListener('click', ()=>{
+  document.getElementById('eventSearchInput').value=''; renderEventSearch();
+});
+function renderEventSearch(){
+  const box = document.getElementById('eventSearchList');
+  const note = document.getElementById('eventSearchNote');
+  if(!box || !note) return;
+  const rawQ = document.getElementById('eventSearchInput').value.trim();
+  box.innerHTML = '';
+  if(!rawQ){ note.textContent = ''; return; }
+
+  // Query mein agar kahin 4-digit saal likha ho (jaise "Ganpati 2025"), to
+  // usi saal tak khoj limit kar do. Saal na likha ho to by-default sirf
+  // is waqt ke chalu saal (jab owner search kar raha hai) ka data dikhao -
+  // roz-roz purane saalon ka data dekhna na pade, sirf jab zaroorat ho
+  // (season se pehle purana customer dhoondhna ho) tab saal type karke sabhi
+  // saal dekh sakte hain.
+  const yearMatch = rawQ.match(/\b(20\d{2})\b/);
+  const targetYear = yearMatch ? yearMatch[1] : String(new Date().getFullYear());
+  const q = (yearMatch ? rawQ.replace(yearMatch[0], '') : rawQ).trim().toLowerCase();
+  if(!q){ note.textContent = 'कृपया event/season का नाम भी लिखें (सिर्फ साल काफी नहीं)।'; return; }
+
+  // Hidden festival calendar se match karo - agar query kisi festival ke naam
+  // se milti hai (jaise "Ganpati"), to us festival ki saari saalon ki date-
+  // ranges nikaal lo. Ismein wo orders/functions bhi shaamil ho jaayenge jinka
+  // "Event" field khud "Ganpati" nahi likha, lekin date us festival ke andar hai.
+  const matchedRanges = (DATA.festivals||[]).filter(fe=> (fe.name||'').toLowerCase().includes(q) && fe.start.slice(0,4)===targetYear);
+  const inFestivalRange = (dateStr)=>{
+    if(!dateStr) return false;
+    return matchedRanges.some(fe=> dateStr>=fe.start && dateStr<=fe.end);
+  };
+  const inTargetYear = (dateStr)=> (dateStr||'').slice(0,4)===targetYear;
+
+  // Order ka event field (ya "Other" hone par eventOther), seasonTag aur
+  // Function ka title - inmein query dhoondo, lekin sirf targetYear ke andar.
+  const matchedOrders = DATA.orders.filter(o=>{
+    if(!inTargetYear(o.date)) return false;
+    const label = (o.event==='Other' ? (o.eventOther||'') : (o.event||''));
+    return label.toLowerCase().includes(q) || (o.seasonTag||'').toLowerCase().includes(q) || inFestivalRange(o.date);
+  }).map(o=>({date:o.date||'', kind:'order', data:o}));
+  const matchedFuncs = (DATA.functions||[]).filter(f=> inTargetYear(f.date) && ((f.title||'').toLowerCase().includes(q) || inFestivalRange(f.date)))
+    .map(f=>({date:f.date||'', kind:'function', data:f}));
+
+  const combined = matchedOrders.concat(matchedFuncs)
+    .sort((a,b)=> a.date.localeCompare(b.date)); // date-wise, ek ke neeche ek
+
+  if(combined.length===0){
+    note.textContent = '"'+q+'" ('+targetYear+') के लिए कोई order/function नहीं मिला। पिछले सालों का भी देखना हो तो साथ में साल टाइप करें, जैसे: '+q+' 2025';
+    return;
+  }
+  note.textContent = targetYear+' में "'+q+'" के लिए कुल '+combined.length+' मिले, date-wise नीचे — दूसरे साल के लिए साथ में साल टाइप करें।';
+  combined.forEach(u=>{
+    box.appendChild(u.kind==='order' ? buildHistoryCard(u.data) : buildFunctionCard(u.data));
+  });
+}
+function renderUpcoming(){
+  const box = document.getElementById('upcomingList');
+  const todayBox = document.getElementById('todayList');
+  if(!box) return;
+  const todayStr = localDateStr();
+  const matchesService = o => serviceFilter==='all' || (o.serviceType||'Party')===serviceFilter;
+  const matchesPayment = o => paymentFilter==='all' || (o.paymentStatus||'unpaid')===paymentFilter;
+
+  // "Aaj" (Today) - sirf aaj ki date wale orders/functions, "Upcoming" se alag section mein.
+  // Cancelled orders/functions ab yahan nahi dikhenge - unhe sirf History mein
+  // "Cancelled" stamp ke saath rakha jaata hai, taaki roz ka Today/Upcoming
+  // list saaf rahe aur galti se unpar kaam na ho jaaye.
+  const todayOrders = DATA.orders.filter(o=> o.date===todayStr && !o.cancelled).filter(matchesService).filter(matchesPayment)
+    .map(o=>({date:o.date, kind:'order', data:o}));
+  const todayFuncs = serviceFilter==='all'
+    ? (DATA.functions||[]).filter(f=> f.date===todayStr && !f.cancelled).filter(matchesPayment).map(f=>({date:f.date, kind:'function', data:f}))
+    : [];
+  const todayItems = todayOrders.concat(todayFuncs);
+  if(todayBox){
+    todayBox.innerHTML = '';
+    if(todayItems.length===0){
+      todayBox.innerHTML = '<div class="empty-note">आज कोई event नहीं है।</div>';
+    } else {
+      todayItems.forEach(u=> todayBox.appendChild(u.kind==='order' ? buildHistoryCard(u.data) : buildFunctionCard(u.data)));
+    }
+  }
+
+  // "Upcoming" - sirf aaj ke baad (strictly future) ki dates; aaj wala ab isme nahi aata
+  const upcomingOrders = DATA.orders
+    .filter(o=> o.date && o.date > todayStr && !o.cancelled)
+    .filter(matchesService)
+    .filter(matchesPayment)
+    .map(o=>({date:o.date, kind:'order', data:o}));
+  // Multi-Meal Functions don't have a Party/Parcel type, isliye jab specifically
+  // Party ya Parcel filter laga ho to unhe list mein na dikhaayein.
+  const upcomingFuncs = serviceFilter==='all'
+    ? (DATA.functions||[]).filter(f=> f.date && f.date > todayStr && !f.cancelled).filter(matchesPayment).map(f=>({date:f.date, kind:'function', data:f}))
+    : [];
+  const upcoming = upcomingOrders.concat(upcomingFuncs).sort((a,b)=> a.date.localeCompare(b.date));
+  box.innerHTML = '';
+  if(upcoming.length===0){
+    box.innerHTML = '<div class="empty-note">कोई upcoming event नहीं है। नया order/function save करने पर अगर date आगे की है, तो वो यहाँ दिख जाएगा।</div>';
+    return;
+  }
+  // Same-date events ek saath group rehte hain; jaise hi date badalti hai,
+  // ek divider line daal do taaki saaf pata chale "yahaan se agla din shuru".
+  let prevDate = null;
+  upcoming.forEach(u=>{
+    if(prevDate!==null && u.date!==prevDate){
+      const divider = document.createElement('div');
+      divider.className = 'upcoming-date-divider';
+      box.appendChild(divider);
+    }
+    prevDate = u.date;
+    box.appendChild(u.kind==='order' ? buildHistoryCard(u.data) : buildFunctionCard(u.data));
+  });
+}
+function renderHistory(){
+  renderUpcoming();
+  renderEventSearch();
+  const q = document.getElementById('historySearch').value.trim().toLowerCase();
+  const dateVal = document.getElementById('historyDateFilter').value;
+  const list = document.getElementById('historyList');
+  const note = document.getElementById('historyNote');
+  let orders = [...DATA.orders].sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
+  let extraOrders = [];
+  if(paymentFilter!=='all'){ orders = orders.filter(o=> (o.paymentStatus||'unpaid')===paymentFilter); }
+  if(serviceFilter!=='all'){ orders = orders.filter(o=> (o.serviceType||'Party')===serviceFilter); }
+  if(dateVal){
+    const md = dateVal.slice(5);
+    extraOrders = orders.filter(o=> o.date!==dateVal && o.date && o.date.slice(5)===md);
+    orders = orders.filter(o=> o.date===dateVal);
+    note.textContent = orders.length ? (dateVal+' को कुल '+orders.length+' customer थे।') : (dateVal+' को कोई order नहीं मिला।');
+  } else if(q){
+    orders = orders.filter(o=>{ const qd=normalizePhoneDigits(q).slice(-10); const od=normalizePhoneDigits(o.customerPhone).slice(-10); return (o.customerName||'').toLowerCase().includes(q) || (o.customerPhone||'').includes(q) || (qd.length>=4 && od && (od.includes(qd) || qd.includes(od))); });
+    note.textContent = '';
+  } else { note.textContent = ''; }
+  list.innerHTML = '';
+  if(orders.length===0 && extraOrders.length===0){ list.innerHTML = '<div class="empty-note">कोई order नहीं मिला।</div>'; return; }
+  orders.forEach(o=> list.appendChild(buildHistoryCard(o)));
+  if(extraOrders.length){
+    const hdr = document.createElement('div');
+    hdr.className = 'section-title';
+    hdr.innerHTML = '<span class="num">↺</span>पिछले सालों में इसी तारीख (' + dateVal.slice(5) + ') के customers';
+    list.appendChild(hdr);
+    extraOrders.forEach(o=> list.appendChild(buildHistoryCard(o)));
+  }
+}
+function buildHistoryCard(o){
+  const card = document.createElement('div');
+  card.className = 'history-card' + (o.cancelled ? ' is-cancelled' : '');
+  const adv = parseFloat(o.advance)||0;
+  const balance = (o.total||0) - adv;
+  const status = o.paymentStatus || 'unpaid';
+  const eventLabel = o.event==='Other' ? (o.eventOther||'Other') : o.event;
+  const formalitiesPills = ''
+    + (o.jain?'<span class="pill">Full Jain</span>':'')
+    + (o.noOnionGarlic?'<span class="pill">No Onion-Garlic</span>':'')
+    + '<span class="pill">Spice: '+o.spice+'</span>';
+  const blocks = CATEGORY_KEYS.map(k=>{
+    const text = (o.items[k]||'').trim();
+    if(!text) return '';
+    return '<div class="hist-block"><div class="bl">'+CATEGORY_LABELS[k]+'</div><div class="bv">'+escapeHtml(text)+'</div></div>';
+  }).join('');
+  const addonsBlock = (o.addons && o.addons.length)
+    ? '<div class="hist-block"><div class="bl">Extra / Add-ons</div><div class="bv">'+escapeHtml(o.addons.join(', '))+'</div></div>' : '';
+  card.innerHTML = ''
+    + (o.cancelled ? '<div class="cancelled-stamp">Cancelled</div>' : '')
+    +'<div class="history-head">'
+      +'<div><h3>'+escapeHtml(o.customerName||'—')+'</h3><div class="meta">'+o.date+(o.time?' · '+escapeHtml(o.time):'')+' · '+escapeHtml(eventLabel)+' · '+escapeHtml(o.serviceType||'Party')+(o.seasonTag?' · <span class="pill" style="padding:1px 8px;">🎉 '+escapeHtml(o.seasonTag)+'</span>':'')+' <span class="pay-pill '+status+'">'+(status==='paid'?('PAID'+(o.paymentMethod?' · '+escapeHtml(o.paymentMethod):'')):'UNPAID')+'</span></div></div>'
+      +'<div class="meta">Order #'+String(o.orderNo||0).padStart(6,'0')+'</div>'
+    +'</div>'
+    +'<div class="history-body">'
+      +'<div class="hsg">'
+        +'<div class="hsg-cell"><div class="l">Date</div><div class="v">'+o.date+'</div></div>'
+        +(o.time?'<div class="hsg-cell"><div class="l">Time</div><div class="v">'+escapeHtml(o.time)+'</div></div>':'')
+        +'<div class="hsg-cell"><div class="l">Guests</div><div class="v">'+o.guests+'</div></div>'
+        +'<div class="hsg-cell"><div class="l">Rate</div><div class="v">₹'+o.rate+'</div></div>'
+        +'<div class="hsg-cell"><div class="l">Extra Charges</div><div class="v">₹'+extrasAmountSum(o.extras).toLocaleString('en-IN')+'</div></div>'
+        +'<div class="hsg-cell"><div class="l">Grand Total</div><div class="v">₹'+(o.total||0).toLocaleString('en-IN')+'</div></div>'
+        +'<div class="hsg-cell"><div class="l">Advance</div><div class="v">₹'+adv.toLocaleString('en-IN')+'</div></div>'
+        +'<div class="hsg-cell balance"><div class="l">Balance</div><div class="v">₹'+balance.toLocaleString('en-IN')+'</div></div>'
+      +'</div>'
+      +'<div style="margin-bottom:14px;">'+formalitiesPills+'</div>'
+      + blocks + addonsBlock
+      + (o.extras && o.extras.length ? '<div class="hist-block"><div class="bl">Extra Requirement</div><div class="bv">'+escapeHtml(extrasToText(o.extras))+'</div></div>' : '')
+      +'<div class="contact-box"><strong>'+escapeHtml(o.customerName||'—')+'</strong><br>📞 '+escapeHtml(o.customerPhone||'—')+'<br>📍 '+escapeHtml(o.customerAddress||'—')+'</div>'
+      +'<div class="action-row">'
+        +'<button class="btn-small edit-btn"'+(o.cancelled?' disabled title="Cancelled order edit nahi ho sakta - pehle Un-cancel karein"':'')+'>Edit Order</button>'
+        +'<button class="btn-small pay-toggle-btn ghost"'+(o.cancelled?' disabled title="Cancelled order par payment mark nahi ho sakta"':'')+'>'+(status==='paid'?'Mark as Unpaid':'Mark as Paid')+'</button>'
+        +'<button class="btn-small cancel-toggle-btn ghost" style="'+(o.cancelled?'border-color:#C0272D;color:#C0272D;':'')+'">'+(o.cancelled?'Un-cancel करें':'Cancel Order')+'</button>'
+        +'<button class="btn-small dup-btn">Duplicate as New Order</button>'
+        +'<button class="btn-small reprint-btn">Reprint</button>'
+        +'<button class="btn-small wa-btn" style="background:#128C4A;"'+(o.cancelled?' disabled title="Cancelled order WhatsApp par nahi bhej sakte"':'')+'>WhatsApp पर PDF भेजें</button>'
+        +'<button class="btn-small del-btn" style="background:#B23A3A;">Delete</button>'
+      +'</div>'
+    +'</div>';
+  card.querySelector('.history-head').addEventListener('click', ()=>{ card.querySelector('.history-body').classList.toggle('open'); });
+  card.querySelector('.edit-btn').addEventListener('click', (e)=>{ e.stopPropagation(); if(o.cancelled) return; editOrder(o); });
+  card.querySelector('.wa-btn').addEventListener('click', (e)=>{ e.stopPropagation(); if(o.cancelled) return; shareOrderPdfOnWhatsApp(o); });
+  card.querySelector('.cancel-toggle-btn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const orderId = o.id;
+    const idxNow = DATA.orders.findIndex(x=>x.id===orderId);
+    if(idxNow<0) return;
+    const willCancel = !DATA.orders[idxNow].cancelled;
+    if(willCancel && !confirm('इस order को Cancelled mark करें? Menu पर बड़ा "Cancelled" stamp लग जाएगा।')) return;
+    DATA.orders[idxNow].cancelled = willCancel;
+    DATA.orders[idxNow].updatedAt = new Date().toISOString();
+    saveData(); renderHistory();
+  });
+  card.querySelector('.pay-toggle-btn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(o.cancelled) return;
+    const orderId = o.id;
+    const idxNow = DATA.orders.findIndex(x=>x.id===orderId);
+    if(idxNow<0) return;
+    const isCurrentlyPaid = DATA.orders[idxNow].paymentStatus==='paid';
+    if(isCurrentlyPaid){
+      DATA.orders[idxNow].paymentStatus = 'unpaid';
+      DATA.orders[idxNow].paymentMethod = '';
+      DATA.orders[idxNow].updatedAt = new Date().toISOString();
+      saveData(); renderHistory();
+    } else {
+      openPaymentMethodPicker((method)=>{
+        // Modal khule rehte waqt agar sync se list reorder ho gayi ho, to purana
+        // index galat ho sakta hai - isliye yahan id se dobara fresh index dhoondo.
+        // Agar isi beech doosre device se yeh order delete ya cancel kar diya
+        // gaya ho, to paid mark mat karo - user ko dubara khud check karne do.
+        const idxFresh = DATA.orders.findIndex(x=>x.id===orderId);
+        if(idxFresh<0){ alert('यह Order अभी-अभी किसी दूसरे device से delete/बदल गया है। कृपया list refresh होने के बाद दोबारा try करें।'); renderHistory(); return; }
+        if(DATA.orders[idxFresh].cancelled){ alert('यह Order अभी-अभी किसी दूसरे device से Cancel कर दिया गया है, इसलिए Paid mark नहीं किया।'); renderHistory(); return; }
+        DATA.orders[idxFresh].paymentStatus = 'paid';
+        DATA.orders[idxFresh].paymentMethod = method;
+        DATA.orders[idxFresh].updatedAt = new Date().toISOString();
+        saveData(); renderHistory();
+      });
+    }
+  });
+  card.querySelector('.dup-btn').addEventListener('click', (e)=>{ e.stopPropagation(); duplicateOrder(o); });
+  card.querySelector('.reprint-btn').addEventListener('click', (e)=>{ e.stopPropagation(); printHtmlDocument(buildOrderPrintHtml(o), 'Order Slip'); });
+  card.querySelector('.del-btn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(confirm('यह order history से हटाएं?')){
+      DATA.orders = DATA.orders.filter(x=>x.id!==o.id);
+      // Sirf list se hatana kaafi nahi - id ko "deleted" tombstone list mein bhi
+      // daalo, warna Firebase sync ke waqt doosre device/remote copy se yeh
+      // record dubara wapas aa sakta tha (delete "chipakta" nahi tha).
+      if(!Array.isArray(DATA.deletedOrderIds)) DATA.deletedOrderIds = [];
+      if(!DATA.deletedOrderIds.includes(o.id)) DATA.deletedOrderIds.push(o.id);
+      saveData(); renderHistory();
+    }
+  });
+  return card;
+}
+function fillOrderFormFrom(order){
+  document.getElementById('f_date').value = order.date;
+  document.getElementById('f_time').value = order.time||'';
+  document.getElementById('f_guests').value = order.guests;
+  document.getElementById('f_rate').value = order.rate;
+  document.getElementById('f_advance').value = order.advance||'';
+  document.getElementById('f_custName').value = order.customerName;
+  document.getElementById('f_custPhone').value = order.customerPhone;
+  document.getElementById('f_custAddress').value = order.customerAddress;
+  document.querySelector('input[name=event][value="'+(['Lunch','Dinner'].includes(order.event)?order.event:'Other')+'"]').checked = true;
+  document.getElementById('otherEventRow').style.display = order.event==='Other' ? 'flex':'none';
+  document.getElementById('f_eventOther').value = order.eventOther||'';
+  document.getElementById('f_seasonTag').value = order.seasonTag||'';
+  document.querySelector('input[name=serviceType][value="'+(order.serviceType==='Parcel'?'Parcel':'Party')+'"]').checked = true;
+  document.getElementById('f_jain').checked = order.jain;
+  document.getElementById('f_noOnionGarlic').checked = order.noOnionGarlic;
+  document.querySelector('input[name=spice][value="'+(order.spice==='Spicy'?'Spicy':'Medium')+'"]').checked = true;
+  fillItemTextareas();
+  renderAddonOptions();
+  renderExtraChips();
+  updateOrderNoLabel();
+  updateTotal();
+}
+function duplicateOrder(o){
+  currentOrder = JSON.parse(JSON.stringify(o));
+  currentOrder.id = null; currentOrder.orderNo = null; currentOrder.createdAt = null;
+  currentOrder.date = localDateStr();
+  currentOrder.advance = ''; currentOrder.paymentStatus = 'unpaid';
+  currentOrder.cancelled = false;
+  currentOrder.paymentMethod = '';
+  document.querySelector('.tab-btn[data-tab="order"]').click();
+  fillOrderFormFrom(currentOrder);
+}
+function editOrder(o){
+  currentOrder = JSON.parse(JSON.stringify(o));
+  document.querySelector('.tab-btn[data-tab="order"]').click();
+  fillOrderFormFrom(currentOrder);
+}
+
+/* ================= MULTI-MEAL FUNCTION TAB ================= */
+document.getElementById('mf_title').addEventListener('input', e=>{ currentFunction.title = e.target.value; });
+document.getElementById('mf_date').addEventListener('input', e=>{ currentFunction.date = e.target.value; });
+document.getElementById('mf_custName').addEventListener('input', e=>{ currentFunction.customerName = e.target.value; });
+document.getElementById('mf_custPhone').addEventListener('input', e=>{ currentFunction.customerPhone = e.target.value; });
+document.getElementById('mf_custAddress').addEventListener('input', e=>{ currentFunction.customerAddress = e.target.value; });
+document.getElementById('mf_advance').addEventListener('input', e=>{ currentFunction.advance = e.target.value; updateFunctionTotal(); });
+document.getElementById('addMealBtn').addEventListener('click', ()=>{
+  currentFunction.meals.push(freshMeal());
+  renderMealSlots();
+});
+
+function renderMealSlots(){
+  const box = document.getElementById('mealSlots');
+  box.innerHTML = '';
+  currentFunction.meals.forEach((meal, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'meal-card';
+
+    const typeOptions = MEAL_TYPES.map(t=>'<option value="'+t+'"'+(meal.type===t?' selected':'')+'>'+t+'</option>').join('');
+    card.innerHTML = ''
+      +'<div class="meal-card-head">'
+        +'<select class="meal-type">'+typeOptions+'</select>'
+        +'<input type="text" class="meal-time" placeholder="Time, जैसे: 7:00 AM - 9:00 AM" value="'+escapeHtml(meal.time)+'">'
+        +'<input type="text" class="meal-type-other" placeholder="Meal का नाम (Other)" style="display:'+(meal.type==='Other'?'block':'none')+';" value="'+escapeHtml(meal.typeOther)+'">'
+        +'<button type="button" class="btn-small ghost meal-remove">हटाएं</button>'
+      +'</div>'
+      +'<div class="row">'
+        +'<div class="field"><label>Guests</label><input type="number" class="meal-guests" min="0" value="'+escapeHtml(meal.guests)+'"></div>'
+        +'<div class="field"><label>Rate per Plate (₹)</label><input type="number" class="meal-rate" min="0" value="'+escapeHtml(meal.rate)+'"></div>'
+        +'<div class="field"><label>Amount</label><div class="meal-amount">₹ 0</div></div>'
+      +'</div>'
+      +'<textarea class="menu-textarea meal-items" placeholder="Items टाइप करें, जैसे:&#10;Sitafal Rabadi&#10;Mohanthal&#10;Paneer Lavabdar">'+escapeHtml(meal.items)+'</textarea>';
+
+    card.querySelector('.meal-type').addEventListener('change', e=>{
+      currentFunction.meals[idx].type = e.target.value;
+      card.querySelector('.meal-type-other').style.display = (e.target.value==='Other') ? 'block':'none';
+    });
+    card.querySelector('.meal-type-other').addEventListener('input', e=>{ currentFunction.meals[idx].typeOther = e.target.value; });
+    card.querySelector('.meal-time').addEventListener('input', e=>{ currentFunction.meals[idx].time = e.target.value; });
+    card.querySelector('.meal-guests').addEventListener('input', e=>{ currentFunction.meals[idx].guests = e.target.value; updateFunctionTotal(); });
+    card.querySelector('.meal-rate').addEventListener('input', e=>{ currentFunction.meals[idx].rate = e.target.value; updateFunctionTotal(); });
+    card.querySelector('.meal-items').addEventListener('input', e=>{ currentFunction.meals[idx].items = e.target.value; });
+    card.querySelector('.meal-remove').addEventListener('click', ()=>{
+      currentFunction.meals.splice(idx,1);
+      if(currentFunction.meals.length===0) currentFunction.meals.push(freshMeal());
+      renderMealSlots();
+      updateFunctionTotal();
+    });
+    box.appendChild(card);
+  });
+  updateFunctionTotal();
+}
+function updateFunctionTotal(){
+  let total = 0;
+  const box = document.getElementById('mealSlots');
+  currentFunction.meals.forEach((meal, idx)=>{
+    const g = parseFloat(meal.guests)||0;
+    const r = parseFloat(meal.rate)||0;
+    const amt = g*r;
+    total += amt;
+    const amtEl = box.children[idx] ? box.children[idx].querySelector('.meal-amount') : null;
+    if(amtEl) amtEl.textContent = '₹ ' + amt.toLocaleString('en-IN');
+  });
+  currentFunction.total = total;
+  const adv = parseFloat(currentFunction.advance)||0;
+  document.getElementById('mfTotalDisplay').textContent = '₹ ' + total.toLocaleString('en-IN');
+  document.getElementById('mfAdvanceDisplay').textContent = '₹ ' + adv.toLocaleString('en-IN');
+  document.getElementById('mfBalanceDisplay').textContent = '₹ ' + (total-adv).toLocaleString('en-IN');
+}
+function updateFuncNoLabel(){
+  const label = currentFunction.funcNo ? currentFunction.funcNo : (DATA.funcCounter+1);
+  document.getElementById('funcNoLabel').textContent = (currentFunction.id ? 'Editing Function No. ':'Function No. ') + String(label).padStart(6,'0');
+}
+document.getElementById('mfSaveBtn').addEventListener('click', ()=>{
+  if(!currentFunction.date){ flagFieldError('mf_date','कृपया Date डालें।'); return; }
+  if(!currentFunction.customerName.trim()){ flagFieldError('mf_custName','कृपया Customer/Contact का नाम डालें।'); return; }
+  const validMeals = currentFunction.meals.filter(m=> parseFloat(m.guests)>0 && m.rate!=='');
+  if(validMeals.length===0){ alert('कृपया कम से कम एक meal में Guests और Rate डालें।'); return; }
+  // Khaali meals (jinme Guests ya Rate nahi bhara) ko save hone se pehle hata do -
+  // warna print/PDF mein khaali box dikhta hai aur "Meals" count galat aata hai.
+  currentFunction.meals = validMeals;
+  updateFunctionTotal();
+  const existingIdx = currentFunction.id ? DATA.functions.findIndex(f=>f.id===currentFunction.id) : -1;
+  if(currentFunction.id && existingIdx>-1){
+    currentFunction.updatedAt = new Date().toISOString();
+    DATA.functions[existingIdx] = JSON.parse(JSON.stringify(currentFunction)); saveData(); renderFunctionsList(); renderHistory(); alert('Function #'+currentFunction.funcNo+' update हो गया।');
+  } else {
+    if(currentFunction.id){
+      // Yeh record kisi doosre device se delete ho chuka hai (multi-device sync mismatch).
+      // Chup-chaap fail hone ke bajaye clearly bata do aur naye function ki tarah save karo.
+      alert('यह Function किसी दूसरे device से delete हो चुका था, इसलिए इसे नए Function की तरह वापस save किया जा रहा है।');
+    }
+    DATA.funcCounter += 1;
+    currentFunction.funcNo = DATA.funcCounter;
+    currentFunction.id = makeId('fn');
+    currentFunction.updatedAt = new Date().toISOString();
+    currentFunction.createdAt = new Date().toISOString();
+    DATA.functions.push(JSON.parse(JSON.stringify(currentFunction)));
+    saveData();
+    renderFunctionsList();
+    renderHistory();
+    alert('Function #'+currentFunction.funcNo+' save हो गया।');
+  }
+  resetFunctionForm();
+});
+document.getElementById('mfResetBtn').addEventListener('click', ()=>{
+  if(confirm('फॉर्म clear करें?')) resetFunctionForm();
+});
+function resetFunctionForm(){
+  currentFunction = freshFunction();
+  document.getElementById('mf_title').value = '';
+  document.getElementById('mf_date').value = currentFunction.date;
+  document.getElementById('mf_custName').value = '';
+  document.getElementById('mf_custPhone').value = '';
+  document.getElementById('mf_custAddress').value = '';
+  document.getElementById('mf_advance').value = '';
+  renderMealSlots();
+  updateFuncNoLabel();
+  updateFunctionTotal();
+}
+function fillFunctionFormFrom(func){
+  document.getElementById('mf_title').value = func.title||'';
+  document.getElementById('mf_date').value = func.date;
+  document.getElementById('mf_custName').value = func.customerName;
+  document.getElementById('mf_custPhone').value = func.customerPhone;
+  document.getElementById('mf_custAddress').value = func.customerAddress;
+  document.getElementById('mf_advance').value = func.advance||'';
+  renderMealSlots();
+  updateFuncNoLabel();
+  updateFunctionTotal();
+}
+function buildFunctionPrintHtml(func){
+  const adv = parseFloat(func.advance)||0;
+  const balance = (func.total||0)-adv;
+  const mealsHtml = func.meals.map(meal=>{
+    const typeLabel = meal.type==='Other' ? (meal.typeOther||'Other') : meal.type;
+    const amt = (parseFloat(meal.guests)||0) * (parseFloat(meal.rate)||0);
+    return '<div class="p-meal-block">'
+      +'<div class="p-section">'+escapeHtml(typeLabel)+(meal.time?' · '+escapeHtml(meal.time):'')+'</div>'
+      +'<div class="p-meal-stats">'
+        +'<div class="p-line"><span>Guests</span><span>'+(meal.guests||0)+'</span></div>'
+        +'<div class="p-line"><span>Rate</span><span>₹'+(meal.rate||0)+'</span></div>'
+        +'<div class="p-line p-line-amount"><span>Amount</span><span>₹'+amt.toLocaleString('en-IN')+'</span></div>'
+      +'</div>'
+      +'<div class="p-body">'+escapeHtml(meal.items||'')+'</div>'
+    +'</div>';
+  }).join('');
+  return ''
+    + (func.cancelled ? '<div style="text-align:center;border:3px solid #C0272D;color:#C0272D;font-weight:700;font-size:16px;padding:6px;margin-bottom:10px;letter-spacing:2px;">❌ CANCELLED FUNCTION ❌</div>' : '')
+    +'<div class="p-shree">|| Shree ||</div>'
+    +'<div class="p-header">'+escapeHtml(DATA.business.name||'Omkar Caterers')+'</div>'
+    + (DATA.business.phone ? '<div class="p-phone">Mob. No. '+escapeHtml(DATA.business.phone)+'</div>' : '')
+    +'<div class="p-sub">'+escapeHtml(func.title||'Function')+' — No. '+String(func.funcNo||(DATA.funcCounter+1)).padStart(6,'0')+'</div>'
+    +'<div class="p-inforow">'
+      +'<span><strong>Date:</strong> '+func.date+'</span>'
+      +'<span><strong>Name:</strong> '+escapeHtml(func.customerName)+'</span>'
+      +'<span><strong>Phone:</strong> '+escapeHtml(func.customerPhone)+'</span>'
+    +'</div>'
+    +'<div class="p-line p-address"><span><strong>Address:</strong></span><span>'+escapeHtml(func.customerAddress)+'</span></div>'
+    + mealsHtml
+    +'<div class="p-totals-block">'
+    +'<div class="p-line"><span>Advance</span><span>₹'+adv.toLocaleString('en-IN')+'</span></div>'
+    +'<div class="p-line"><span>Balance Due</span><span>₹'+balance.toLocaleString('en-IN')+'</span></div>'
+    +'<div class="p-total">Grand Total = ₹'+(func.total||0).toLocaleString('en-IN')+'</div>'
+    + (func.paymentStatus==='paid' ? '<div class="p-line-amount p-line"><span>Payment</span><span>'+escapeHtml(func.paymentMethod||'Paid')+'</span></div>' : '')
+    +'</div>';
+}
+document.getElementById('mfPrintBtn').addEventListener('click', ()=>{
+  updateFunctionTotal();
+  printHtmlDocument(buildFunctionPrintHtml(currentFunction), 'Function Bill');
+});
+function buildFunctionWhatsAppText(func){
+  const adv = parseFloat(func.advance)||0;
+  const balance = (func.total||0)-adv;
+  let lines = [];
+  if(func.cancelled) lines.push('🚫🚫🚫 *YEH FUNCTION CANCELLED HAI* 🚫🚫🚫');
+  lines.push('*'+(DATA.business.name||'Omkar Caterers')+'*');
+  if(DATA.business.phone) lines.push('Mob. No. '+DATA.business.phone);
+  lines.push('_'+(func.title||'Function')+' — No. '+String(func.funcNo||(DATA.funcCounter+1)).padStart(6,'0')+'_');
+  lines.push('');
+  lines.push('📅 Date: '+func.date);
+  lines.push('👤 '+func.customerName);
+  func.meals.forEach(meal=>{
+    const typeLabel = meal.type==='Other' ? (meal.typeOther||'Other') : meal.type;
+    const amt = (parseFloat(meal.guests)||0) * (parseFloat(meal.rate)||0);
+    lines.push('\n*'+typeLabel+(meal.time?' · '+meal.time:'')+'* — '+(meal.guests||0)+' guests × ₹'+(meal.rate||0)+' = ₹'+amt.toLocaleString('en-IN'));
+    if(meal.items) lines.push(meal.items);
+  });
+  lines.push('\n💰 Grand Total: ₹'+(func.total||0).toLocaleString('en-IN'));
+  lines.push('Advance: ₹'+adv.toLocaleString('en-IN')+' | Balance: ₹'+balance.toLocaleString('en-IN'));
+  if(func.paymentStatus==='paid') lines.push('✅ Payment: '+(func.paymentMethod||'Paid'));
+  lines.push('\n✅ 100% Pure Vegetarian');
+  return lines.join('\n');
+}
+function shareFunctionOnWhatsApp(func){
+  const digits = formatWaPhone(func.customerPhone);
+  const text = buildFunctionWhatsAppText(func);
+  if(!digits){ alert('Customer का मोबाइल नंबर डालें तो सीधा उसी को भेजा जा सकेगा। अभी WhatsApp बिना नंबर के खुलेगा।'); }
+  const url = 'https://wa.me/' + digits + '?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
+}
+document.getElementById('waFuncBtn').addEventListener('click', ()=>{
+  updateFunctionTotal();
+  shareFunctionOnWhatsApp(currentFunction);
+});
+
+function buildFunctionPdfDoc(func){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p','pt','a4');
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginX = 24;
+  let y = 86;
+  const maroon=[122,29,46], maroonDark=[74,15,28], gold=[200,155,60], cream=[251,243,227], ink=[43,27,18], veg=[30,123,52], paper=[251,246,234];
+
+  function ensureSpace(h){ if(y + h > pageH - 30){ doc.addPage('a4','p'); y = 24; } }
+  function sectionTitle(text){
+    ensureSpace(20);
+    doc.setDrawColor.apply(doc,gold); doc.setLineWidth(1);
+    doc.line(marginX, y+13, pageW-marginX, y+13);
+    doc.setFont('helvetica','bold'); doc.setFontSize(11.5); doc.setTextColor.apply(doc,maroonDark);
+    doc.text(text, marginX, y+10);
+    y += 21;
+  }
+  function bodyText(text){
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor.apply(doc,ink);
+    const lines = doc.splitTextToSize(String(text||'—'), pageW-2*marginX-16);
+    ensureSpace(lines.length*14+10);
+    doc.setFillColor.apply(doc,paper);
+    doc.rect(marginX, y-3, pageW-2*marginX, lines.length*14+8, 'F');
+    doc.setDrawColor.apply(doc,gold); doc.setLineWidth(2);
+    doc.line(marginX+1, y-3, marginX+1, y+lines.length*14+5);
+    doc.text(lines, marginX+9, y+8);
+    y += lines.length*14+13;
+  }
+  function lineRow(label, value){
+    ensureSpace(15);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(90,80,65);
+    doc.text(String(label), marginX, y);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor.apply(doc,ink);
+    doc.text(String(value||'—'), pageW-marginX, y, {align:'right'});
+    y += 15;
+  }
+
+  doc.setFillColor.apply(doc,maroonDark);
+  doc.rect(0,0,pageW,74,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor.apply(doc,gold);
+  doc.text('|| Shree ||', pageW/2, 14, {align:'center'});
+  doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor.apply(doc,cream);
+  doc.text(DATA.business.name||'Omkar Caterers', marginX, 33);
+  if(DATA.business.phone){
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5);
+    doc.text('Mob. No. '+DATA.business.phone, marginX, 47);
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor.apply(doc,gold);
+  doc.text('MULTI-MEAL FUNCTION  —  NO. '+String(func.funcNo||(DATA.funcCounter+1)).padStart(6,'0'), marginX, 63);
+
+  lineRow('Function / Group', func.title||'—');
+  lineRow('Date', func.date||'—');
+  lineRow('Customer', func.customerName||'—');
+  lineRow('Phone', func.customerPhone||'—');
+  lineRow('Address', func.customerAddress||'—');
+  y += 6;
+
+  (func.meals||[]).forEach(meal=>{
+    const typeLabel = meal.type==='Other' ? (meal.typeOther||'Other') : meal.type;
+    const amt = (parseFloat(meal.guests)||0) * (parseFloat(meal.rate)||0);
+    sectionTitle(typeLabel+(meal.time?' · '+meal.time:''));
+    // Guests/Rate/Amount ko bordered box mein group karo (B&W print mein bhi
+    // items text se saaf alag dikhega, color pe depend nahi karta).
+    ensureSpace(32);
+    doc.setDrawColor.apply(doc,gold); doc.setLineWidth(1);
+    doc.rect(marginX, y-2, pageW-2*marginX, 26);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor.apply(doc,ink);
+    doc.text('Guests: '+(meal.guests||0), marginX+10, y+15);
+    doc.text('Rate: '+fmtRs(meal.rate||0), marginX+(pageW-2*marginX)/3+10, y+15);
+    doc.setFont('helvetica','bold');
+    doc.text('Amount: '+fmtRs(amt), marginX+2*(pageW-2*marginX)/3+10, y+15);
+    y += 32;
+    if(meal.items) bodyText(meal.items);
+  });
+
+  const adv = parseFloat(func.advance)||0;
+  const balance = (func.total||0)-adv;
+  const isPaid = func.paymentStatus==='paid';
+  const boxH = isPaid ? 66 : 50;
+  ensureSpace(boxH+8);
+  doc.setFillColor.apply(doc,maroon);
+  doc.roundedRect(marginX, y, pageW-2*marginX, boxH, 5, 5, 'F');
+  let ty = y+18;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor.apply(doc,cream);
+  doc.text('Advance', marginX+11, ty); doc.text(fmtRs(adv), pageW-marginX-11, ty, {align:'right'});
+  ty += 15;
+  doc.text('Balance Due', marginX+11, ty); doc.text(fmtRs(balance), pageW-marginX-11, ty, {align:'right'});
+  ty += 19;
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor.apply(doc,gold);
+  doc.text('Grand Total', marginX+11, ty); doc.text(fmtRs(func.total||0), pageW-marginX-11, ty, {align:'right'});
+  if(isPaid){
+    ty += 17;
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor.apply(doc,gold);
+    doc.text('Payment: '+(func.paymentMethod||'Paid'), marginX+11, ty);
+  }
+  y += boxH+12;
+
+  ensureSpace(24);
+  const badgeText = '100% PURE VEGETARIAN';
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5);
+  const tw = doc.getTextWidth(badgeText)+22;
+  doc.setDrawColor.apply(doc,veg); doc.setFillColor(233,247,239); doc.setLineWidth(1);
+  doc.roundedRect(pageW-marginX-tw, y, tw, 20, 9, 9, 'FD');
+  doc.setTextColor.apply(doc,veg);
+  doc.text(badgeText, pageW-marginX-tw+11, y+14);
+  y += 24;
+
+  if(func.cancelled){
+    const totalPages = doc.internal.getNumberOfPages();
+    for(let p=1; p<=totalPages; p++){
+      doc.setPage(p);
+      doc.setFont('helvetica','bold'); doc.setFontSize(60);
+      doc.setTextColor(192,39,45);
+      if(doc.saveGraphicsState && doc.setGState && doc.GState){ doc.saveGraphicsState(); doc.setGState(new doc.GState({opacity:0.28})); }
+      doc.text('CANCELLED', pageW/2, pageH/2, {align:'center', angle:35});
+      if(doc.restoreGraphicsState){ doc.restoreGraphicsState(); }
+    }
+  } else if(func.paymentStatus==='paid'){
+    const totalPages = doc.internal.getNumberOfPages();
+    for(let p=1; p<=totalPages; p++){
+      doc.setPage(p);
+      doc.setFont('helvetica','bold'); doc.setFontSize(60);
+      doc.setTextColor(18,140,74);
+      if(doc.saveGraphicsState && doc.setGState && doc.GState){ doc.saveGraphicsState(); doc.setGState(new doc.GState({opacity:0.28})); }
+      doc.text('PAID', pageW/2, pageH/2, {align:'center', angle:35});
+      if(doc.restoreGraphicsState){ doc.restoreGraphicsState(); }
+    }
+  }
+  return doc;
+}
+function generateFunctionPdfBlob(func){
+  return new Promise((resolve, reject)=>{
+    if(!window.jspdf){ reject(new Error('PDF library load nahi hui - internet check karein')); return; }
+    try{
+      const doc = buildFunctionPdfDoc(func);
+      resolve(doc.output('blob'));
+    }catch(err){ reject(err); }
+  });
+}
+async function shareFunctionPdfOnWhatsApp(func){
+  if(hasDevanagari(JSON.stringify(func)) || hasDevanagari((DATA.business&&DATA.business.name)||'')){
+    // jsPDF Helvetica has no Devanagari — customer names/menu in Hindi may look blank in PDF
+    console.warn('Devanagari text may not render in PDF (font limit)');
+  }
+
+  const btn = document.getElementById('waFuncPdfBtn');
+  const originalLabel = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'PDF बन रहा है...'; }
+  try{
+    const blob = await generateFunctionPdfBlob(func);
+    const fileName = 'Function-'+String(func.funcNo||'draft').padStart(6,'0')+'.pdf';
+    const file = new File([blob], fileName, {type:'application/pdf'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({ files:[file], title: DATA.business.name||'Omkar Caterers', text:'Aapka digital menu' });
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = fileName; a.click();
+      URL.revokeObjectURL(url);
+      alert('Is device par seedha WhatsApp share support nahi hai, isliye PDF download kar di hai. WhatsApp kholkar khud attach kar dein.');
+      const digits = formatWaPhone(func.customerPhone);
+      if(digits) window.open('https://wa.me/' + digits, '_blank');
+    }
+  }catch(err){
+    if(err && (err.name==='AbortError' || err.name==='NotAllowedError')){
+      // silently ignore - user cancelled the share sheet
+    } else {
+      console.error(err);
+      alert('PDF banane mein dikkat aayi. Page reload karke dobara try karein.');
+    }
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel || 'WhatsApp पर PDF भेजें'; }
+  }
+}
+document.getElementById('waFuncPdfBtn').addEventListener('click', ()=>{
+  updateFunctionTotal();
+  shareFunctionPdfOnWhatsApp(currentFunction);
+});
+document.getElementById('mfSearch').addEventListener('input', ()=>{
+  if(document.getElementById('mfSearch').value.trim()) document.getElementById('mfDateFilter').value='';
+  renderFunctionsList();
+});
+
+function renderFunctionUpcoming(){
+  const todayBox = document.getElementById('mfTodayList');
+  const upcomingBox = document.getElementById('mfUpcomingList');
+  if(!todayBox || !upcomingBox) return;
+  const todayStr = localDateStr();
+  const todayFuncs = (DATA.functions||[]).filter(f=> f.date===todayStr && !f.cancelled);
+  todayBox.innerHTML = '';
+  if(todayFuncs.length===0){
+    todayBox.innerHTML = '<div class="empty-note">आज कोई function नहीं है।</div>';
+  } else {
+    todayFuncs.forEach(f=> todayBox.appendChild(buildFunctionCard(f)));
+  }
+  const upcomingFuncs = (DATA.functions||[])
+    .filter(f=> f.date && f.date > todayStr && !f.cancelled)
+    .sort((a,b)=> a.date.localeCompare(b.date));
+  upcomingBox.innerHTML = '';
+  if(upcomingFuncs.length===0){
+    upcomingBox.innerHTML = '<div class="empty-note">कोई upcoming function नहीं है।</div>';
+  } else {
+    let prevDate = null;
+    upcomingFuncs.forEach(f=>{
+      if(prevDate!==null && f.date!==prevDate){
+        const divider = document.createElement('div');
+        divider.className = 'upcoming-date-divider';
+        upcomingBox.appendChild(divider);
+      }
+      prevDate = f.date;
+      upcomingBox.appendChild(buildFunctionCard(f));
+    });
+  }
+}
+document.getElementById('mfDateFilter').addEventListener('input', ()=>{
+  document.getElementById('mfSearch').value=''; renderFunctionsList();
+});
+document.getElementById('mfClearFilterBtn').addEventListener('click', ()=>{
+  document.getElementById('mfSearch').value=''; document.getElementById('mfDateFilter').value=''; renderFunctionsList();
+});
+function renderFunctionsList(){
+  renderFunctionUpcoming();
+  const q = document.getElementById('mfSearch').value.trim().toLowerCase();
+  const dateVal = document.getElementById('mfDateFilter').value;
+  const list = document.getElementById('mfList');
+  let funcs = [...DATA.functions].sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
+  if(dateVal){ funcs = funcs.filter(f=> f.date===dateVal); }
+  else if(q){ funcs = funcs.filter(f=>{ const qd=normalizePhoneDigits(q).slice(-10); const od=normalizePhoneDigits(f.customerPhone).slice(-10); return (f.customerName||'').toLowerCase().includes(q) || (f.customerPhone||'').includes(q) || (qd.length>=4 && od && (od.includes(qd)||qd.includes(od))) || (f.title||'').toLowerCase().includes(q); }); }
+  list.innerHTML = '';
+  const filterActive = !!(dateVal || q);
+  if(funcs.length===0){
+    list.innerHTML = '<div class="empty-note">'+(filterActive
+      ? 'इस filter/date/search से कोई function नहीं मिला। ऊपर से filter साफ करके देखें।'
+      : 'कोई function save नहीं हुआ अभी तक।')+'</div>';
+    return;
+  }
+  funcs.forEach(f=> list.appendChild(buildFunctionCard(f)));
+}
+function buildFunctionCard(f){
+  const card = document.createElement('div');
+  card.className = 'history-card' + (f.cancelled ? ' is-cancelled' : '');
+  const adv = parseFloat(f.advance)||0;
+  const balance = (f.total||0)-adv;
+  const status = f.paymentStatus||'unpaid';
+  const mealsBlocks = f.meals.map(meal=>{
+    const typeLabel = meal.type==='Other' ? (meal.typeOther||'Other') : meal.type;
+    const amt = (parseFloat(meal.guests)||0) * (parseFloat(meal.rate)||0);
+    return '<div class="hist-block"><div class="bl">'+escapeHtml(typeLabel)+(meal.time?' · '+escapeHtml(meal.time):'')+' — '+(meal.guests||0)+' guests × ₹'+(meal.rate||0)+' = ₹'+amt.toLocaleString('en-IN')+'</div><div class="bv">'+escapeHtml(meal.items||'—')+'</div></div>';
+  }).join('');
+  card.innerHTML = ''
+    + (f.cancelled ? '<div class="cancelled-stamp">Cancelled</div>' : '')
+    +'<div class="history-head">'
+      +'<div><h3>'+escapeHtml(f.title || f.customerName || '—')+'</h3><div class="meta">'+f.date+' · '+escapeHtml(f.customerName||'')+' <span class="pay-pill '+status+'">'+(status==='paid'?('PAID'+(f.paymentMethod?' · '+escapeHtml(f.paymentMethod):'')):'UNPAID')+'</span></div></div>'
+      +'<div class="meta">Function #'+String(f.funcNo||0).padStart(6,'0')+'</div>'
+    +'</div>'
+    +'<div class="history-body">'
+      +'<div class="hsg">'
+        +'<div class="hsg-cell"><div class="l">Date</div><div class="v">'+f.date+'</div></div>'
+        +'<div class="hsg-cell"><div class="l">Meals</div><div class="v">'+f.meals.length+'</div></div>'
+        +'<div class="hsg-cell"><div class="l">Total</div><div class="v">₹'+(f.total||0).toLocaleString('en-IN')+'</div></div>'
+        +'<div class="hsg-cell"><div class="l">Advance</div><div class="v">₹'+adv.toLocaleString('en-IN')+'</div></div>'
+        +'<div class="hsg-cell balance"><div class="l">Balance</div><div class="v">₹'+balance.toLocaleString('en-IN')+'</div></div>'
+      +'</div>'
+      + mealsBlocks
+      +'<div class="contact-box"><strong>'+escapeHtml(f.customerName||'—')+'</strong><br>📞 '+escapeHtml(f.customerPhone||'—')+'<br>📍 '+escapeHtml(f.customerAddress||'—')+'</div>'
+      +'<div class="action-row">'
+        +'<button class="btn-small edit-btn"'+(f.cancelled?' disabled title="Cancelled function edit nahi ho sakta - pehle Un-cancel karein"':'')+'>Edit</button>'
+        +'<button class="btn-small pay-toggle-btn ghost"'+(f.cancelled?' disabled title="Cancelled function par payment mark nahi ho sakta"':'')+'>'+(status==='paid'?'Mark as Unpaid':'Mark as Paid')+'</button>'
+        +'<button class="btn-small cancel-toggle-btn ghost" style="'+(f.cancelled?'border-color:#C0272D;color:#C0272D;':'')+'">'+(f.cancelled?'Un-cancel करें':'Cancel Function')+'</button>'
+        +'<button class="btn-small reprint-btn">Reprint</button>'
+        +'<button class="btn-small wa-btn" style="background:#128C4A;"'+(f.cancelled?' disabled title="Cancelled function WhatsApp par nahi bhej sakte"':'')+'>WhatsApp Text</button>'
+        +'<button class="btn-small wa-pdf-btn" style="background:#128C4A;"'+(f.cancelled?' disabled title="Cancelled function WhatsApp par nahi bhej sakte"':'')+'>WhatsApp PDF</button>'
+        +'<button class="btn-small del-btn" style="background:#B23A3A;">Delete</button>'
+      +'</div>'
+    +'</div>';
+  card.querySelector('.history-head').addEventListener('click', ()=>{ card.querySelector('.history-body').classList.toggle('open'); });
+  card.querySelector('.edit-btn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(f.cancelled) return;
+    currentFunction = JSON.parse(JSON.stringify(f));
+    document.querySelector('.tab-btn[data-tab="multimeal"]').click();
+    fillFunctionFormFrom(currentFunction);
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+  card.querySelector('.wa-btn').addEventListener('click', (e)=>{ e.stopPropagation(); if(f.cancelled) return; shareFunctionOnWhatsApp(f); });
+  card.querySelector('.wa-pdf-btn').addEventListener('click', (e)=>{ e.stopPropagation(); if(f.cancelled) return; shareFunctionPdfOnWhatsApp(f); });
+  card.querySelector('.cancel-toggle-btn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const funcId = f.id;
+    const idxNow = DATA.functions.findIndex(x=>x.id===funcId);
+    if(idxNow<0) return;
+    const willCancel = !DATA.functions[idxNow].cancelled;
+    if(willCancel && !confirm('इस function को Cancelled mark करें? Menu पर बड़ा "Cancelled" stamp लग जाएगा।')) return;
+    DATA.functions[idxNow].cancelled = willCancel;
+    DATA.functions[idxNow].updatedAt = new Date().toISOString();
+    saveData(); renderFunctionsList(); renderHistory();
+  });
+  card.querySelector('.pay-toggle-btn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(f.cancelled) return;
+    const funcId = f.id;
+    const idxNow = DATA.functions.findIndex(x=>x.id===funcId);
+    if(idxNow<0) return;
+    const isCurrentlyPaid = DATA.functions[idxNow].paymentStatus==='paid';
+    if(isCurrentlyPaid){
+      DATA.functions[idxNow].paymentStatus = 'unpaid';
+      DATA.functions[idxNow].paymentMethod = '';
+      DATA.functions[idxNow].updatedAt = new Date().toISOString();
+      saveData(); renderFunctionsList(); renderHistory();
+    } else {
+      openPaymentMethodPicker((method)=>{
+        // Modal khule rehte waqt agar sync se list reorder ho gayi ho, to purana
+        // index galat ho sakta hai - isliye yahan id se dobara fresh index dhoondo.
+        // Agar isi beech doosre device se yeh function delete ya cancel kar diya
+        // gaya ho, to paid mark mat karo - user ko dubara khud check karne do.
+        const idxFresh = DATA.functions.findIndex(x=>x.id===funcId);
+        if(idxFresh<0){ alert('यह Function अभी-अभी किसी दूसरे device से delete/बदल गया है। कृपया list refresh होने के बाद दोबारा try करें।'); renderFunctionsList(); renderHistory(); return; }
+        if(DATA.functions[idxFresh].cancelled){ alert('यह Function अभी-अभी किसी दूसरे device से Cancel कर दिया गया है, इसलिए Paid mark नहीं किया।'); renderFunctionsList(); renderHistory(); return; }
+        DATA.functions[idxFresh].paymentStatus = 'paid';
+        DATA.functions[idxFresh].paymentMethod = method;
+        DATA.functions[idxFresh].updatedAt = new Date().toISOString();
+        saveData(); renderFunctionsList(); renderHistory();
+      });
+    }
+  });
+  card.querySelector('.reprint-btn').addEventListener('click', (e)=>{ e.stopPropagation(); printHtmlDocument(buildFunctionPrintHtml(f), 'Function Bill'); });
+  card.querySelector('.del-btn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(confirm('यह function history से हटाएं?')){
+      DATA.functions = DATA.functions.filter(x=>x.id!==f.id);
+      if(!Array.isArray(DATA.deletedFunctionIds)) DATA.deletedFunctionIds = [];
+      if(!DATA.deletedFunctionIds.includes(f.id)) DATA.deletedFunctionIds.push(f.id);
+      saveData(); renderFunctionsList(); renderHistory();
+    }
+  });
+  return card;
+}
+
+/* ================= SETTINGS TAB ================= */
+function renderSettings(){
+  document.getElementById('s_bizName').value = DATA.business.name || 'Omkar Caterers';
+  document.getElementById('s_bizPhone').value = DATA.business.phone || '';
+  renderAddonSettingsList();
+  renderFestivalSettingsList();
+}
+['s_bizName','s_bizPhone'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el){ el.addEventListener('input', ()=>{ settingsFormDirty = true; }); }
+});
+document.getElementById('saveBizBtn').addEventListener('click', ()=>{
+  settingsFormDirty = false;
+
+  DATA.business.name = document.getElementById('s_bizName').value.trim() || 'Omkar Caterers';
+  DATA.business.phone = document.getElementById('s_bizPhone').value.trim();
+  setBusinessDirty(true);
+  saveData(); renderHeader(); alert('Business details save हो गए।');
+});
+function resizeImageForLogo(file){
+  // Keep the Firestore document small - a full-resolution phone photo as base64 can
+  // easily be 1-3MB on its own, which risks hitting Firestore's ~1MB document limit
+  // and breaking sync entirely. Shrinking to a small square logo is more than enough
+  // for print/PDF/WhatsApp use and keeps the whole document tiny.
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const maxSize = 300;
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        // JPEG has no alpha - fill white so transparent PNG logos don't become black discs
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = ()=> reject(new Error('Image load failed'));
+      img.src = reader.result;
+    };
+    reader.onerror = ()=> reject(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+document.getElementById('s_logoInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  resizeImageForLogo(file).then(dataUrl=>{
+    DATA.business.logo = dataUrl;
+    setBusinessDirty(true);
+    saveData(); renderHeader();
+  }).catch(()=>{ alert('Logo image process करने में दिक्कत आई, दोबारा try करें।'); });
+});
+function renderAddonSettingsList(){
+  const box = document.getElementById('s_addonList');
+  box.innerHTML = '';
+  (DATA.addonOptions||[]).forEach((item,i)=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = '<span>'+escapeHtml(item)+'</span><span class="rm">✕</span>';
+    row.querySelector('.rm').addEventListener('click', ()=>{
+      DATA.addonOptions.splice(i,1);
+      // Sirf list se hatana kaafi nahi - tombstone list mein bhi daalo, warna
+      // sync ke waqt doosre device par abhi maujood item wapas chipak jaata.
+      if(!Array.isArray(DATA.deletedAddons)) DATA.deletedAddons = [];
+      if(!DATA.deletedAddons.includes(item)) DATA.deletedAddons.push(item);
+      saveData(); renderAddonSettingsList(); renderAddonOptions();
+    });
+    box.appendChild(row);
+  });
+  if((DATA.addonOptions||[]).length===0){ box.innerHTML = '<div class="empty-note">कोई item नहीं है।</div>'; }
+}
+document.getElementById('s_addAddonBtn').addEventListener('click', ()=>{
+  const inp = document.getElementById('s_addonInput');
+  const val = inp.value.trim();
+  if(!val) return;
+  if(!DATA.addonOptions) DATA.addonOptions=[];
+  if(DATA.addonOptions.includes(val)){ alert('यह item पहले से मौजूद है।'); return; }
+  DATA.addonOptions.push(val);
+  // Agar yeh item pehle kabhi delete kiya gaya tha, to dobara add karne par
+  // tombstone se bhi hata do - warna yeh naya add turant sync par hi hat jaata.
+  if(Array.isArray(DATA.deletedAddons)) DATA.deletedAddons = DATA.deletedAddons.filter(a=>a!==val);
+  inp.value=''; saveData(); renderAddonSettingsList(); renderAddonOptions();
+});
+document.getElementById('s_addonInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); document.getElementById('s_addAddonBtn').click(); }
+});
+
+function renderFestivalSettingsList(){
+  const box = document.getElementById('s_festivalList');
+  if(!box) return;
+  box.innerHTML = '';
+  const list = (DATA.festivals||[]).slice().sort((a,b)=> (a.start||'').localeCompare(b.start||''));
+  if(list.length===0){ box.innerHTML = '<div class="empty-note">कोई festival नहीं जोड़ा गया।</div>'; return; }
+  list.forEach(fe=>{
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = '<span>'+escapeHtml(fe.name)+' — '+fe.start+' से '+fe.end+'</span><span class="rm">✕</span>';
+    row.querySelector('.rm').addEventListener('click', ()=>{
+      DATA.festivals = (DATA.festivals||[]).filter(x=>x.id!==fe.id);
+      // Tombstone: id ko "deleted" list mein daal do, warna Firebase sync ke
+      // baad doosre device/remote copy se yeh festival dubara wapas aa jaata.
+      if(!Array.isArray(DATA.deletedFestivalIds)) DATA.deletedFestivalIds = [];
+      if(!DATA.deletedFestivalIds.includes(fe.id)) DATA.deletedFestivalIds.push(fe.id);
+      saveData(); renderFestivalSettingsList();
+    });
+    box.appendChild(row);
+  });
+}
+document.getElementById('s_addFestBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('s_festName').value.trim();
+  const start = document.getElementById('s_festStart').value;
+  const end = document.getElementById('s_festEnd').value;
+  if(!name || !start || !end){ alert('कृपया festival का नाम और दोनों dates भरें।'); return; }
+  if(end<start){ alert('ख़त्म Date, शुरू Date से पहले नहीं हो सकती।'); return; }
+  if(!DATA.festivals) DATA.festivals = [];
+  DATA.festivals.push({ id:'fe_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), name, start, end });
+  document.getElementById('s_festName').value = '';
+  document.getElementById('s_festStart').value = '';
+  document.getElementById('s_festEnd').value = '';
+  saveData(); renderFestivalSettingsList();
+});
+
+/* ================= BACKUP / RESTORE ================= */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(DATA,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'omkar-caterers-backup-'+localDateStr()+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('importBtn').addEventListener('click', ()=>{ document.getElementById('importFile').click(); });
+document.getElementById('importFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(!parsed.orders){ alert('यह file valid backup नहीं है।'); return; }
+      if(!confirm('मौजूदा data इस backup से REPLACE हो जाएगा (local)। जारी रखें?')) return;
+      DATA = normalizeFullData(parsed);
+      // True replace on cloud too: mark everything not in backup as deleted tombstones
+      // so merge cannot resurrect old cloud-only orders.
+      if(firebaseReady && window.firebaseUser && db){
+        const replaceCloud = confirm('Cloud/Firestore पर भी पूरा replace करें?\n\nOK = cloud भी backup जैसा हो जाएगा\nCancel = सिर्फ इस device पर restore, cloud merge बाद में मिला सकता है');
+        if(replaceCloud){
+          setBusinessDirty(true);
+          setLocalDataDirty(true);
+          cloudReplaceLockUntil = Date.now() + 20000;
+          try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(err){}
+          const docRef = db.collection('caterers').doc(window.firebaseUser.uid);
+          // Tombstones: cloud par jo orders/functions backup mein nahi, unhe deleted
+          // list mein daalo taaki doosri device ka merge unhe wapas na laaye.
+          docRef.get().then(snap=>{
+            const remote = snap.exists ? (snap.data()||{}) : {};
+            const keepO = new Set((DATA.orders||[]).map(o=>String(o.id)));
+            const keepF = new Set((DATA.functions||[]).map(f=>String(f.id)));
+            const keepFe = new Set((DATA.festivals||[]).map(f=>String(f.id)));
+            const delO = new Set([...(DATA.deletedOrderIds||[]), ...(remote.deletedOrderIds||[])].map(String));
+            const delF = new Set([...(DATA.deletedFunctionIds||[]), ...(remote.deletedFunctionIds||[])].map(String));
+            const delFe = new Set([...(DATA.deletedFestivalIds||[]), ...(remote.deletedFestivalIds||[])].map(String));
+            (remote.orders||[]).forEach(o=>{ if(!keepO.has(String(o.id))) delO.add(String(o.id)); });
+            (remote.functions||[]).forEach(f=>{ if(!keepF.has(String(f.id))) delF.add(String(f.id)); });
+            (remote.festivals||[]).forEach(f=>{ if(!keepFe.has(String(f.id))) delFe.add(String(f.id)); });
+            DATA.deletedOrderIds = Array.from(delO);
+            DATA.deletedFunctionIds = Array.from(delF);
+            DATA.deletedFestivalIds = Array.from(delFe);
+            // Addon tombstones: remote addons not in backup
+            const keepA = new Set(DATA.addonOptions||[]);
+            const delA = new Set([...(DATA.deletedAddons||[]), ...(remote.deletedAddons||[])]);
+            (remote.addonOptions||[]).forEach(a=>{ if(!keepA.has(a)) delA.add(a); });
+            DATA.deletedAddons = Array.from(delA);
+            try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(err){}
+            return docRef.set(DATA);
+          }).then(()=>{
+            setLocalDataDirty(false);
+            setBusinessDirty(false);
+            cloudReplaceLockUntil = Date.now() + 12000;
+            alert('Backup restore हो गया (local + cloud replace + tombstones)।');
+          }).catch(err=>{
+            console.error(err);
+            setLocalDataDirty(true);
+            alert('Local restore हो गया, लेकिन cloud write fail। Net चेक करें।');
+          });
+          renderHeader(); renderSettings(); renderHistory(); renderFunctionsList();
+          return;
+        }
+      }
+      setBusinessDirty(true);
+      saveData();
+      renderHeader(); renderSettings(); renderHistory(); renderFunctionsList();
+      alert('Backup restore हो गया (इस device पर)।');
+    }catch(err){ alert('File पढ़ने में error आई।'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+/* ================= UTIL ================= */
+function hasDevanagari(str){
+  return /[\u0900-\u097F]/.test(String(str||''));
+}
+function escapeHtml(str){
+  return String(str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function extrasToText(extras){
+  return (extras||[]).map(e=>{
+    if(typeof e === 'string') return e;
+    const amt = parseFloat(e && e.amount)||0;
+    return (e && e.label ? e.label : '') + (amt>0 ? ' — ₹'+amt.toLocaleString('en-IN') : '');
+  }).filter(Boolean).join(', ');
+}
+function extrasAmountSum(extras){
+  return (extras||[]).reduce((sum,e)=> sum + (typeof e==='object' ? (parseFloat(e && e.amount)||0) : 0), 0);
+}
+
+/* ================= INIT ================= */
+function init(){
+  renderHeader();
+  document.getElementById('f_date').value = currentOrder.date;
+  fillItemTextareas();
+  renderAddonOptions();
+  renderExtraChips();
+  updateOrderNoLabel();
+  updateTotal();
+
+  document.getElementById('mf_date').value = currentFunction.date;
+  renderMealSlots();
+  updateFuncNoLabel();
+}
+init();
+
+// Register service worker for installable PWA behaviour (only works when hosted over https, e.g. GitHub Pages).
+// Silently does nothing when opened as a local file:// - the app still works fine either way.
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
